@@ -61,49 +61,70 @@ nav ul li a:hover {
     background-color: #0056b3;
 }
 
-/* Estilo do formulário */
+/* Estilo geral para formulários e inputs */
 form {
-    max-width: 400px;
-    margin: 30px auto;
-    padding: 20px;
+    width: 300px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
     background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
 }
 
-form label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: #555;
+/* Atualização dos inputs para se ajustarem automaticamente */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+textarea,
+select {
+    width: 100%; /* Usa 100% do espaço disponível */
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-sizing: border-box; /* Garante que padding e border sejam incluídos no width */
+    margin: 0; /* Remove margens que podem causar overflow */
 }
 
-form input, form button {
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+button,
+input[type="submit"] {
     width: 100%;
     padding: 12px;
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1rem;
-}
-
-form input:focus {
-    border-color: #007bff;
-    outline: none;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-}
-
-form button {
-    background-color: #007bff;
+    background: #007bff;
     color: white;
     border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
     cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
 }
 
-form button:hover {
-    background-color: #0056b3;
+button:hover,
+input[type="submit"]:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+}
+
+button:active,
+input[type="submit"]:active {
+    transform: translateY(0);
 }
 
 /* Estilo dos containers */
@@ -123,20 +144,16 @@ form button:hover {
 
 /* Estilo dos cards */
 .card {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 15px;
-    width: 200px;
-    text-align: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    margin: 10px;
+    width: 300px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    border-radius: 12px;
+    transition: all 0.3s ease;
 }
 
 .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transform: translateY(-10px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .card h3 {
@@ -235,6 +252,34 @@ form button:hover {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+.player-photo-container {
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 1.5rem;
+}
+
+.player-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+}
+
+.team-logo-overlay {
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    border-radius: 50%;
+    background: white;
+    border: 1px solid #ddd;
+    padding: 2px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
 .score {
     font-size: 1.5rem;
     font-weight: bold;
@@ -281,141 +326,243 @@ footer p {
 
 /* Estilo para fotos de jogadores */
 .player-photo-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 10px 0;
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 1.5rem;
 }
 
 .player-photo {
-    width: 80px;
-    height: 80px;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     border-radius: 50%;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border: 2px solid #ddd;
 }
 
-/* Estilo para o formulário de busca */
-#searchForm {
-    max-width: 600px;
-    margin: 2rem auto;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+.team-logo-overlay {
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    border-radius: 50%;
     background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border: 1px solid #ddd;
+    padding: 2px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Atualização específica para o formulário de busca */
+#searchForm {
+    width: 300px;
+    margin: 2rem auto;
 }
 
 #searchInput {
-    padding: 12px;
+    width: 100%;
+    margin: 0;
+}
+
+/* Estilo para os cards de times */
+.team-card {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 12px;
+    background: white;
+    transition: all 0.3s ease;
+    margin: 0 auto;
+}
+
+.team-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.team-card:hover .team-logo {
+    transform: scale(1.1);
+}
+
+.team-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.team-logo {
+    width: 150px;
+    height: 150px;
+    object-fit: contain; /* Mantém a proporção da imagem */
+    margin: 0 auto;
+    display: block;
+    border-radius: 0; /* Remove a borda redonda */
+    padding: 10px; /* Adiciona um espaço interno */
+    background: white;
+    transition: transform 0.3s ease;
+}
+
+.team-info {
+    flex: 1;
+    text-align: center;
+}
+
+.team-info h3 {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.team-location {
+    color: #666;
     font-size: 1rem;
+    margin: 0.5rem 0;
 }
 
-#searchForm button {
-    padding: 12px 24px;
-    background: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background 0.3s ease;
+.team-leagues {
+    color: #2196F3;
+    font-weight: 500;
+    margin: 1rem 0;
+    font-size: 1.1rem;
 }
 
-#searchForm button:hover {
-    background: #0056b3;
+.venue-info {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    text-align: left;
 }
 
-/* Estilo para os resultados */
-#searchResults {
-    max-width: 1200px;
+/* Estilo para estatísticas de ligas */
+.league-stats {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    text-align: left;
+}
+
+/* Adicione ou atualize estas classes */
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 2rem;
+    justify-items: center;
+}
+
+.teams-section, .players-section {
     margin: 2rem auto;
+    max-width: 1200px;
     padding: 0 1rem;
 }
 
-.search-section {
-    margin-bottom: 2rem;
+/* Mensagem de busca */
+.searching-message {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #2c3e50;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    max-width: 400px;
+    margin: 2rem auto;
+    animation: pulse 1.5s infinite;
 }
 
-.results-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1.5rem;
-    padding: 1rem;
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
 }
 
-.card {
+/* Atualize o título dos resultados */
+.results-title {
+    text-align: center;
+    font-size: 2rem;
+    color: #2c3e50;
+    margin: 2rem 0;
+    padding-bottom: 1rem;
+    position: relative;
+}
+
+.results-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 3px;
+    background: #007bff;
+    border-radius: 3px;
+}
+
+/* Mensagem de nenhum resultado */
+.no-results {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #666;
+    padding: 3rem;
     background: white;
     border-radius: 8px;
-    padding: 1rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    max-width: 600px;
+    margin: 2rem auto;
+}
+
+/* Atualize o estilo dos cards de jogadores */
+.player-card {
+    width: 300px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-}
-
-/* Estilo para o perfil do jogador */
-.player-profile {
-    text-align: center;
-    margin: 20px auto;
-    padding: 20px;
+    padding: 1.5rem;
     border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #fff;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    background: white;
+    transition: all 0.3s ease;
+    margin: 0 auto;
 }
 
-.player-profile img {
+.player-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.player-card:hover .player-photo {
+    transform: scale(1.1);
+}
+
+.player-info {
+    flex: 1;
+    text-align: center;
+}
+
+.player-info h3 {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.player-info p {
+    color: #666;
+    font-size: 1rem;
+    margin: 0.5rem 0;
+}
+
+.player-photo {
     width: 150px;
     height: 150px;
+    object-fit: cover;
+    margin: 0 auto;
+    display: block;
     border-radius: 50%;
-    margin-bottom: 20px;
-}
-
-.player-profile ul {
-    list-style: none;
-    padding: 0;
-}
-
-.player-profile ul li {
-    margin-bottom: 10px;
-}
-
-/* Responsividade */
-@media (max-width: 768px) {
-    #searchForm {
-        margin: 1rem;
-    }
-
-    .results-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1rem;
-    }
-
-    .card {
-        padding: 0.8rem;
-    }
-}
-
-@media (max-width: 480px) {
-    #searchForm {
-        margin: 0.5rem;
-    }
-
-    .results-grid {
-        grid-template-columns: 1fr;
-    }
-
-    #searchInput, #searchForm button {
-        width: 100%;
-    }
+    border: 2px solid #ddd;
+    padding: 5px;
+    background: white;
+    transition: transform 0.3s ease;
 }
