@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favoritos</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Favoritos</h1>
+        <nav>
+            <ul>
+                <li><a href="principal.html">Página Principal</a></li>
+                <li><a href="busca.html">Busca</a></li>
+                <li><a href="perfil.html">Perfil</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section>
+            <h2>Times Favoritos</h2>
+            <div id="favoriteTeams" class="favorites-container"></div>
+        </section>
+
+        <section>
+            <h2>Ligas Favoritas</h2>
+            <div id="favoriteLeagues" class="favorites-container"></div>
+        </section>
+
+        <section>
+            <h2>Jogadores Favoritos</h2>
+            <div id="favoritePlayers" class="favorites-container"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 API Football</p>
+    </footer>
+
+    <script src="assets/js/favorites.js" type="module"></script>
+    <script>
+        // Função para carregar os favoritos e exibi-los
+        function loadFavorites() {
+            const favorites = JSON.parse(localStorage.getItem('favorites')) || {};
+
+            // Exibir times favoritos
+            const favoriteTeamsDiv = document.getElementById('favoriteTeams');
+            if (favorites.team && favorites.team.length > 0) {
+                favoriteTeamsDiv.innerHTML = favorites.team.map(team => `
+                    <div class="card">
+                        <h3>${team.name}</h3>
+                        <img src="${team.logo}" alt="${team.name}" class="team-logo">
+                        <button class="favorite-btn" onclick="removeFromFavorites('team', ${team.id})">
+                            &#10060; Remover
+                        </button>
+                    </div>
+                `).join('');
+            } else {
+                favoriteTeamsDiv.innerHTML = '<p>Nenhum time favorito.</p>';
+            }
+
+            // Exibir ligas favoritas
+            const favoriteLeaguesDiv = document.getElementById('favoriteLeagues');
+            if (favorites.league && favorites.league.length > 0) {
+                favoriteLeaguesDiv.innerHTML = favorites.league.map(league => `
+                    <div class="card">
+                        <h3>${league.name}</h3>
+                        <img src="${league.logo}" alt="${league.name}" class="league-logo">
+                        <button class="favorite-btn" onclick="removeFromFavorites('league', ${league.id})">
+                            &#10060; Remover
+                        </button>
+                    </div>
+                `).join('');
+            } else {
+                favoriteLeaguesDiv.innerHTML = '<p>Nenhuma liga favorita.</p>';
+            }
+
+            // Exibir jogadores favoritos
+            const favoritePlayersDiv = document.getElementById('favoritePlayers');
+            if (favorites.player && favorites.player.length > 0) {
+                favoritePlayersDiv.innerHTML = favorites.player.map(player => `
+                    <div class="card">
+                        <h3>${player.name}</h3>
+                        <img src="${player.photo}" alt="${player.name}" class="player-photo">
+                        <button class="favorite-btn" onclick="removeFromFavorites('player', ${player.id})">
+                            &#10060; Remover
+                        </button>
+                    </div>
+                `).join('');
+            } else {
+                favoritePlayersDiv.innerHTML = '<p>Nenhum jogador favorito.</p>';
+            }
+        }
+
+        // Função para remover favoritos
+        function removeFromFavorites(type, id) {
+            const favorites = JSON.parse(localStorage.getItem('favorites')) || {};
+            if (favorites[type]) {
+                favorites[type] = favorites[type].filter(item => item.id !== id);
+                localStorage.setItem('favorites', JSON.stringify(favorites));
+                loadFavorites(); // Recarregar os favoritos
+            }
+        }
+
+        // Carregar os favoritos ao abrir a página
+        document.addEventListener('DOMContentLoaded', loadFavorites);
+    </script>
+</body>
+</html>

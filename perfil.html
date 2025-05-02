@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Perfil do Usuário</h1>
+        <nav>
+            <ul>
+                <li><a href="principal.html">Página Principal</a></li>
+                <li><a href="favoritos.html">Favoritos</a></li>
+                <li><a href="busca.html">Busca</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <h2 id="userName"></h2>
+            <p id="userEmail"></p>
+            <button id="logout">Sair</button>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 API Football</p>
+    </footer>
+
+    <script src="assets/js/auth.js"></script>
+    <script>
+        // Verifica se o usuário está logado
+        const user = JSON.parse(localStorage.getItem('session'));
+        if (!user) {
+            alert('Você precisa estar logado!');
+            window.location.href = 'index.html';
+        } else {
+            document.getElementById('userName').innerText = `Nome: ${user.name}`;
+            document.getElementById('userEmail').innerText = `E-mail: ${user.email}`;
+        }
+
+        // Logout do usuário
+        document.getElementById('logout').addEventListener('click', () => {
+            localStorage.removeItem('session');
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>
