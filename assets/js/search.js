@@ -1,14 +1,15 @@
 import { fetchFromAPI } from './api.js';
 
-// Adicione esta função auxiliar no início do arquivo, logo após o import
-function removeAccents(str) {
-    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-}
-
-// Adicione esta função auxiliar para formatar o país
-function formatCountry(country) {
-    return country === 'Brazil' ? 'Brasil' : country;
-}
+const utils = {
+    removeAccents: str => str.normalize('NFD').replace(/[\u0300-\u036f]/g, ''),
+    formatCountry: country => country === 'Brazil' ? 'Brasil' : country,
+    addLeague: (leagues, leagueName) => {
+        if (!leagues.includes(leagueName)) {
+            leagues.push(leagueName);
+        }
+        return leagues;
+    }
+};
 
 // Ligas principais do Brasil com IDs de ambas as versões
 const BRAZILIAN_LEAGUES = [
@@ -49,201 +50,75 @@ const BRAZILIAN_LEAGUES = [
     }
 ];
 
-// Função para buscar jogadores e times por liga
 async function searchBrazilianData(query) {
     const results = {
         players: new Map(),
         teams: new Map()
     };
 
-    // Normaliza o termo de busca removendo acentos
-    const normalizedQuery = removeAccents(query.toLowerCase());
-    console.log('Iniciando busca nas ligas brasileiras com termo:', normalizedQuery);
+    const normalizedQuery = utils.removeAccents(query.toLowerCase());
 
     for (const league of BRAZILIAN_LEAGUES) {
         try {
-            console.log(`Buscando times na liga ${league.name}`);
+            // Busca de times
+            const teamsData = await fetchFromAPI(`teams?league=${league.id.v3}&season=${league.season}`, 'v3');
             
-            let teamsData = await fetchFromAPI(`teams?league=${league.id.v3}&season=${league.season}`, 'v3');
-            
-            if (teamsData?.response) {
-                teamsData.response.forEach(teamData => {
-                    const team = teamData.team;
+            teamsData?.response?.forEach(({team}) => {
+                if (utils.removeAccents(team.name.toLowerCase()).includes(normalizedQuery)) {
                     const teamId = team.id.toString();
+                    const existingTeam = results.teams.get(teamId);
                     
-                    // Compara usando a versão normalizada do nome do time
-                    const normalizedTeamName = removeAccents(team.name.toLowerCase());
-                    if (normalizedTeamName.includes(normalizedQuery)) {
-                        if (results.teams.has(teamId)) {
-                            const existingTeam = results.teams.get(teamId);
-                            if (!existingTeam.leagues.includes(league.name)) {
-                                existingTeam.leagues.push(league.name);
-                                results.teams.set(teamId, existingTeam);
-                            }
-                        } else {
-                            results.teams.set(teamId, {
-                                id: team.id,
-                                name: team.name,
-                                logo: team.logo,
-                                leagues: [league.name],
-                                venue: team.venue || null,
-                                founded: team.founded || null,
-                                country: formatCountry(team.country),
-                                city: team.city || 'Brasil'
-                            });
-                        }
-                    }
-                });
-            }
-
-            // Busca na v2 se necessário
-            if ((!teamsData?.response || teamsData.response.length === 0) && league.id.v2) {
-                teamsData = await fetchFromAPI(`teams/league/${league.id.v2}`, 'v2');
-                
-                if (teamsData?.api?.teams) {
-                    teamsData.api.teams.forEach(team => {
-                        const teamId = team.team_id.toString();
-                        
-                        // Compara usando a versão normalizada do nome do time
-                        const normalizedTeamName = removeAccents(team.name.toLowerCase());
-                        if (normalizedTeamName.includes(normalizedQuery)) {
-                            if (results.teams.has(teamId)) {
-                                const existingTeam = results.teams.get(teamId);
-                                if (!existingTeam.leagues.includes(league.name)) {
-                                    existingTeam.leagues.push(league.name);
-                                    results.teams.set(teamId, existingTeam);
-                                }
-                            } else {
-                                results.teams.set(teamId, {
-                                    id: team.team_id,
-                                    name: team.name,
-                                    logo: team.logo,
-                                    leagues: [league.name],
-                                    venue: null,
-                                    founded: team.founded,
-                                    country: formatCountry(team.country),
-                                    city: team.city || 'Brasil'
-                                });
-                            }
-                        }
+                    results.teams.set(teamId, {
+                        ...existingTeam,
+                        id: team.id,
+                        name: team.name,
+                        logo: team.logo,
+                        leagues: utils.addLeague(existingTeam?.leagues || [], league.name),
+                        venue: team.venue || null,
+                        founded: team.founded || null,
+                        country: utils.formatCountry(team.country),
+                        city: team.city || 'Brasil'
                     });
                 }
-            }
+            });
 
             // Busca de jogadores
-            let playersData = await fetchFromAPI(
-                `players?search=${encodeURIComponent(removeAccents(query))}&league=${league.id.v3}&season=${league.season}`,
+            const playersData = await fetchFromAPI(
+                `players?search=${encodeURIComponent(query)}&league=${league.id.v3}&season=${league.season}`,
                 'v3'
             );
 
-            if (playersData?.response) {
-                playersData.response.forEach(playerData => {
-                    const player = playerData.player;
+            playersData?.response?.forEach(({player, statistics}) => {
+                if (utils.removeAccents(player.name.toLowerCase()).includes(normalizedQuery)) {
                     const playerId = player.id.toString();
-                    
-                    // Compara usando a versão normalizada do nome do jogador
-                    const normalizedPlayerName = removeAccents(player.name.toLowerCase());
-                    if (normalizedPlayerName.includes(normalizedQuery)) {
-                        if (!results.players.has(playerId)) {
-                            // Pegamos as informações do time das estatísticas
-                            const teamInfo = playerData.statistics?.[0]?.team || {
-                                name: 'Time não informado',
-                                logo: 'caminho/para/imagem/padrao.png'
-                            };
+                    const existingPlayer = results.players.get(playerId);
+                    const teamInfo = statistics?.[0]?.team || {
+                        name: 'Time não informado',
+                        logo: 'assets/img/player-placeholder.png'
+                    };
 
-                            results.players.set(playerId, {
-                                id: playerId,
-                                name: player.name,
-                                photo: player.photo,
-                                age: player.age,
-                                nationality: player.nationality,
-                                leagues: [league.name],
-                                team: {
-                                    name: teamInfo.name,
-                                    logo: teamInfo.logo
-                                },
-                                stats: {}
-                            });
-                        }
-                        
-                        // Adiciona estatísticas da liga atual
-                        const currentStats = playerData.statistics?.[0];
-                        if (currentStats) {
-                            results.players.get(playerId).stats[league.name] = {
-                                games: currentStats.games?.appearances || 0,
-                                goals: currentStats.goals?.total || 0,
-                                assists: currentStats.goals?.assists || 0
-                            };
-                        }
-                    }
-                });
-            }
+                    results.players.set(playerId, {
+                        ...existingPlayer,
+                        id: playerId,
+                        name: player.name,
+                        photo: player.photo,
+                        age: player.age,
+                        nationality: player.nationality,
+                        leagues: utils.addLeague(existingPlayer?.leagues || [], league.name),
+                        team: teamInfo
+                    });
+                }
+            });
 
         } catch (error) {
             console.error(`Erro ao buscar dados na liga ${league.name}:`, error);
         }
     }
 
-    // Ordena os times por nome antes de retornar
-    const sortedTeams = new Map(
-        [...results.teams.entries()].sort((a, b) => a[1].name.localeCompare(b[1].name))
-    );
-    results.teams = sortedTeams;
-
-    // Log dos resultados para debug
-    console.log('Times encontrados:', Array.from(results.teams.values()));
-    console.log('Jogadores encontrados:', Array.from(results.players.values()));
-
+    results.teams = new Map([...results.teams].sort((a, b) => a[1].name.localeCompare(b[1].name)));
     return results;
 }
 
-// Função para renderizar os resultados
-async function renderSearchResults(query) {
-    const resultsDiv = document.getElementById('searchResults');
-    resultsDiv.innerHTML = '<div class="searching-message">Buscando resultados...</div>';
-
-    try {
-        const { players, teams } = await searchBrazilianData(query);
-
-        if (players.size === 0 && teams.size === 0) {
-            resultsDiv.innerHTML = '<div class="no-results">Nenhum jogador ou time encontrado nas ligas principais.</div>';
-            return;
-        }
-
-        let html = '<h2 class="results-title">Resultados da Busca</h2>';
-
-        // Seção de Times
-        if (teams.size > 0) {
-            html += `
-                <div class="teams-section">
-                    <h3>Times</h3>
-                    <div class="results-grid">
-                        ${Array.from(teams.values()).map(team => renderTeamCard(team)).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        // Seção de Jogadores
-        if (players.size > 0) {
-            html += `
-                <div class="players-section">
-                    <h3>Jogadores</h3>
-                    <div class="results-grid">
-                        ${Array.from(players.values()).map(player => renderPlayerCard(player)).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        resultsDiv.innerHTML = html;
-    } catch (error) {
-        console.error('Erro ao processar resultados:', error);
-        resultsDiv.innerHTML = '<div class="no-results">Erro ao processar os resultados. Tente novamente.</div>';
-    }
-}
-
-// Atualização da renderização dos times
 function renderTeamCard(team) {
     return `
         <div class="card team-card">
@@ -266,7 +141,6 @@ function renderTeamCard(team) {
     `;
 }
 
-// Atualização da renderização dos jogadores
 function renderPlayerCard(player) {
     return `
         <div class="card player-card">
@@ -279,7 +153,7 @@ function renderPlayerCard(player) {
             <div class="player-info">
                 <h3>${player.name}</h3>
                 <p>Idade: ${player.age}</p>
-                <p>Nacionalidade: ${player.nationality === 'Brazil' ? 'Brasil' : player.nationality}</p>
+                <p>Nacionalidade: ${utils.formatCountry(player.nationality)}</p>
                 <p>Time: ${player.team?.name || 'Não informado'}</p>
                 <p>Competições: ${player.leagues.join(', ')}</p>
             </div>
@@ -287,15 +161,46 @@ function renderPlayerCard(player) {
     `;
 }
 
-// Configura o formulário de busca
+async function renderSearchResults(query) {
+    const resultsDiv = document.getElementById('searchResults');
+    resultsDiv.innerHTML = '<div class="searching-message">Buscando resultados...</div>';
+
+    try {
+        const { players, teams } = await searchBrazilianData(query);
+
+        if (!players.size && !teams.size) {
+            resultsDiv.innerHTML = '<div class="no-results">Nenhum resultado encontrado.</div>';
+            return;
+        }
+
+        resultsDiv.innerHTML = `
+            <h2 class="results-title">Resultados da Busca</h2>
+            ${teams.size > 0 ? `
+                <div class="teams-section">
+                    <h3>Times</h3>
+                    <div class="results-grid">
+                        ${Array.from(teams.values()).map(renderTeamCard).join('')}
+                    </div>
+                </div>
+            ` : ''}
+            ${players.size > 0 ? `
+                <div class="players-section">
+                    <h3>Jogadores</h3>
+                    <div class="results-grid">
+                        ${Array.from(players.values()).map(renderPlayerCard).join('')}
+                    </div>
+                </div>
+            ` : ''}
+        `;
+    } catch (error) {
+        console.error('Erro:', error);
+        resultsDiv.innerHTML = '<div class="no-results">Erro ao processar resultados.</div>';
+    }
+}
+
 document.getElementById('searchForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const query = document.getElementById('searchInput').value.trim();
-
-    if (!query) {
-        alert('Por favor, digite um termo para buscar');
-        return;
-    }
-
+    if (!query) return alert('Por favor, digite um termo para buscar');
     await renderSearchResults(query);
 });
