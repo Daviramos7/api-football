@@ -169,7 +169,7 @@ async function renderSearchResults(query) {
         const { players, teams } = await searchBrazilianData(query);
 
         if (!players.size && !teams.size) {
-            resultsDiv.innerHTML = '<div class="no-results">Nenhum resultado encontrado.</div>';
+            resultsDiv.innerHTML = '<div class="no-results">Nenhum resultado encontrado, por favor recarregue a página.</div>';
             return;
         }
 
