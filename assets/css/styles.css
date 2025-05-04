@@ -3,13 +3,13 @@ body {
     font-family: 'Roboto', Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f0f2f5;
-    color: #333;
+    background-color: #121212;
+    color: #f5f5f5;
 }
 
 h1, h2, h3 {
     text-align: center;
-    color: #2c3e50;
+    color: #ffffff;
     margin-bottom: 20px;
 }
 
@@ -24,7 +24,7 @@ a:hover {
 
 /* Estilo do cabeçalho */
 header {
-    background-color: #007bff;
+    background-color: #191818;
     color: white;
     padding: 20px 0;
     text-align: center;
@@ -132,7 +132,7 @@ input[type="submit"]:active {
     max-width: 900px;
     margin: 30px auto;
     padding: 20px;
-    background: white;
+    background: #1e1e1e;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
@@ -189,7 +189,7 @@ input[type="submit"]:active {
 
 .league h3 {
     font-size: 1.5rem;
-    color: #2c3e50;
+    color: #ffffff;
     margin: 0;
     text-align: center;
 }
@@ -203,7 +203,7 @@ input[type="submit"]:active {
 }
 
 .game-card {
-    background: white;
+    background: #1e1e1e;
     border: 1px solid #ddd;
     border-radius: 10px;
     padding: 15px;
@@ -312,7 +312,7 @@ input[type="submit"]:active {
 
 /* Estilo do rodapé */
 footer {
-    background-color: #2c3e50;
+    background-color: #1e1e1e;
     color: white;
     text-align: center;
     padding: 15px 0;
@@ -570,7 +570,7 @@ footer p {
 
 /* Cartão de jogo */
 .game-card {
-    background: white;
+    background: #1e1e1e;
     border: 1px solid #ddd;
     border-radius: 8px;
     padding: 12px;
@@ -623,13 +623,13 @@ footer p {
   .score {
     font-size: 1.4rem;
     font-weight: bold;
-    color: #333;
+    color: #ffffff;
   }
   
   /* Nome dos times */
   .teams {
     font-size: 1rem;
-    color: #555;
+    color: #ffffff;
     margin-top: 8px;
   }
   
@@ -657,8 +657,8 @@ footer p {
   }
   
   .badge.scheduled {
-    background: #f1c40f;
-    color: #2c3e50;
+    background: #696865;
+    color: #ffffff;
   }
   
   /* Ajuste de logos: alinhamento */
@@ -679,13 +679,17 @@ footer p {
 .calendar-card {
     display: flex;
     align-items: center;
-    justify-content: center;
-    background: white;
-    padding: 10px 20px;
+    justify-content: space-between;
+    background: #191818;
+    padding: 10px;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     gap: 15px;
     margin-bottom: 25px;
+  }
+  
+  .cal-btn {
+    background-color: #252525;
   }
   
   .match-details-container {
