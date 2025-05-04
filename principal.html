@@ -1,40 +1,42 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página Principal</title>
-    <link rel="stylesheet" href="assets/css/styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jogos do Dia</title>
+  <link rel="stylesheet" href="assets/css/styles.css"/>
 </head>
 <body>
     <header>
-        <h1>Bem-vindo à Página Principal</h1>
+        <h1>Jogos do Dia</h1>
         <nav>
             <ul>
-                <li><a href="perfil.html">Perfil</a></li>
+                <li><a href="busca.html">Buscar</a></li>
                 <li><a href="favoritos.html">Favoritos</a></li>
-                <li><a href="busca.html">Busca</a></li>
+                <li><a href="perfil.html">Perfil</a></li>
             </ul>
         </nav>
     </header>
 
-    <main>
-        <section>
-            <h2>Jogos ao Vivo</h2>
-            <div id="liveGames"></div>
-        </section>
+  <main class="container">
+    <!-- calendário -->
+    <div class="calendar-card">
+        <button id="prevDay" class="cal-btn" aria-label="Dia anterior">&lt;</button>
+        <span id="currentDate" class="cal-date"></span>
+        <button id="nextDay" class="cal-btn" aria-label="Próximo dia">&gt;</button>
+      </div>
+      
 
-        <section>
-            <h2>Favoritos</h2>
-            <div id="favorites"></div>
-        </section>
-    </main>
+    <!-- lista de jogos -->
+    <div id="gamesList" class="games">
+      <!-- cards inseridos aqui via JS -->
+    </div>
+  </main>
 
-    <footer>
-        <p>&copy; 2025 API Football</p>
-    </footer>
+  <footer>
+    <p>&copy; 2025 API Football</p>
+  </footer>
 
-    <script src="assets/js/main.js" type="module"></script>
-    <script src="assets/js/favorites.js" type="module"></script>
+  <script type="module" src="assets/js/main.js"></script>
 </body>
 </html>

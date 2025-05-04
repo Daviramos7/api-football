@@ -1,58 +1,127 @@
 import { fetchFromAPI } from './api.js';
 
-async function loadLiveGames() {
-    try {
-        // Fazendo a requisição para buscar jogos ao vivo
-        const data = await fetchFromAPI('fixtures?live=all');
-        const liveGames = data.response;
+// Ligas principais do Brasil com IDs v3
+const BRAZILIAN_LEAGUES = [
+  { id: { v3: 71 }, name: 'Brasileirão Série A' },
+  { id: { v3: 72 }, name: 'Brasileirão Série B' },
+  { id: { v3: 75 }, name: 'Brasileirão Série C' },
+  { id: { v3: 76 }, name: 'Brasileirão Série D' },
+  { id: { v3: 73 }, name: 'Copa do Brasil' }
+];
+const allowedIds = new Set(BRAZILIAN_LEAGUES.map(l => l.id.v3));
 
-        const liveGamesDiv = document.getElementById('liveGames');
+// Controle de data atual
+let currentDate = new Date();
+const prevBtn = document.getElementById('prevDay');
+const nextBtn = document.getElementById('nextDay');
+const dateSpan = document.getElementById('currentDate');
+const gamesDiv = document.getElementById('gamesList');
 
-        if (liveGames.length === 0) {
-            liveGamesDiv.innerHTML = '<p>Não há jogos ao vivo no momento.</p>';
-            return;
-        }
+// Eventos dos botões de navegação
+prevBtn.addEventListener('click', () => changeDay(-1));
+nextBtn.addEventListener('click', () => changeDay(1));
 
-        // Agrupando jogos por liga
-        const gamesByLeague = liveGames.reduce((acc, game) => {
-            const leagueName = game.league.name;
-            if (!acc[leagueName]) {
-                acc[leagueName] = {
-                    logo: game.league.logo,
-                    games: [],
-                };
-            }
-            acc[leagueName].games.push(game);
-            return acc;
-        }, {});
-
-        // Renderizando os jogos ao vivo divididos por ligas
-        liveGamesDiv.innerHTML = Object.keys(gamesByLeague).map(league => `
-            <div class="league">
-                <div class="league-header">
-                    <img src="${gamesByLeague[league].logo}" alt="${league}" class="league-logo">
-                    <h3>${league}</h3>
-                </div>
-                <div class="games">
-                    ${gamesByLeague[league].games.map(game => `
-                        <div class="game-card">
-                            <div class="minute">${game.fixture.status.elapsed || 0}'</div>
-                            <div class="logos">
-                                <img src="${game.teams.home.logo}" alt="${game.teams.home.name}" class="team-logo">
-                                <span class="score">${game.goals.home} - ${game.goals.away}</span>
-                                <img src="${game.teams.away.logo}" alt="${game.teams.away.name}" class="team-logo">
-                            </div>
-                            <p class="teams">${game.teams.home.name} vs ${game.teams.away.name}</p>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `).join('');
-    } catch (error) {
-        console.error('Erro ao carregar jogos ao vivo:', error);
-        document.getElementById('liveGames').innerHTML = '<p>Erro ao carregar jogos ao vivo. Tente novamente mais tarde.</p>';
-    }
+// Muda o dia em currentDate e recarrega
+function changeDay(offset) {
+  currentDate.setDate(currentDate.getDate() + offset);
+  loadGamesForDate();
 }
 
-// Chamando a função para carregar os jogos ao vivo
-loadLiveGames();
+// Formata data para pt-BR
+function formatBR(d) {
+  return d.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+}
+
+// Carrega e renderiza jogos do dia selecionado
+async function loadGamesForDate() {
+  dateSpan.textContent = formatBR(currentDate);
+  gamesDiv.innerHTML = '<p>Carregando jogos...</p>';
+
+  const dateStr = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD
+  try {
+    const { response } = await fetchFromAPI(`fixtures?date=${dateStr}`);
+    const jogos = response.filter(fx => allowedIds.has(fx.league.id));
+
+    if (jogos.length === 0) {
+      gamesDiv.innerHTML = '<p>Não há jogos destes campeonatos nesta data.</p>';
+      return;
+    }
+
+    // Agrupa por liga
+    const byLeague = jogos.reduce((acc, g) => {
+      const lid = g.league.id;
+      if (!acc[lid]) {
+        acc[lid] = {
+          name: BRAZILIAN_LEAGUES.find(l => l.id.v3 === lid).name,
+          games: []
+        };
+      }
+      acc[lid].games.push(g);
+      return acc;
+    }, {});
+
+    // Renderiza blocos por liga
+    gamesDiv.innerHTML = Object.values(byLeague).map(block => {
+      return `
+        <div class="league">
+          <div class="league-header">
+            <h3>${block.name}</h3>
+          </div>
+          <div class="games">
+            ${block.games
+              .map(g => {
+                const status = g.fixture.status.short;
+                const isNS = status === 'NS';
+                const isFinished = status === 'FT';
+                const home = g.teams.home;
+                const away = g.teams.away;
+                const scoreH = g.goals.home ?? '-';
+                const scoreA = g.goals.away ?? '-';
+                const dateObj = new Date(g.fixture.date);
+                const timeBR = dateObj.toLocaleTimeString('pt-BR', {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                });
+
+                // Badge conforme status
+                let badgeHTML = '';
+                if (isNS) {
+                  badgeHTML = `<div class="badge scheduled">${timeBR}</div>`;
+                } else if (!isFinished) {
+                  badgeHTML = `<div class="badge live">${g.fixture.status.elapsed}'</div>`;
+                }
+
+                // Link para página de detalhes
+                const matchUrl = `partida.html?id=${g.fixture.id}`;
+
+                return `
+                  <a href="${matchUrl}" class="game-link">
+                    <div class="game-card ${isFinished ? 'finished' : ''}">
+                      ${badgeHTML}
+                      <div class="logos">
+                        <img src="${home.logo}" alt="${home.name}" class="team-logo left">
+                        <span class="score">${scoreH} x ${scoreA}</span>
+                        <img src="${away.logo}" alt="${away.name}" class="team-logo right">
+                      </div>
+                      <p class="teams">${home.name} vs ${away.name}</p>
+                    </div>
+                  </a>
+                `;
+              })
+              .join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (error) {
+    console.error('Erro ao carregar jogos:', error);
+    gamesDiv.innerHTML = '<p>Erro ao carregar jogos. Tente novamente.</p>';
+  }
+}
+
+// Inicializa na data de hoje
+loadGamesForDate();

@@ -566,3 +566,412 @@ footer p {
     background: white;
     transition: transform 0.3s ease;
 }
+
+
+/* Cartão de jogo */
+.game-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .game-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  }
+  
+  /* Estilo específico para jogos finalizados */
+  .game-card.finished {
+    border-color: #e74c3c;
+  }
+  .game-card.finished .score,
+  .game-card.finished .teams,
+  .game-card.finished .time {
+    color: #e74c3c;
+  }
+  
+  /* Minuto de jogo */
+  .minute {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #007bff;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: bold;
+  }
+  
+  /* Logos e placar */
+  .logos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .team-logo {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+  }
+  .score {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  /* Nome dos times */
+  .teams {
+    font-size: 1rem;
+    color: #555;
+    margin-top: 8px;
+  }
+  
+  /* Horário */
+  .time {
+    margin-top: 6px;
+    font-size: 0.9rem;
+    color: #666;
+  }
+  
+/* Badge para minuto/horário */
+.badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: bold;
+  }
+  
+  .badge.live {
+    background: #007bff;
+    color: white;
+  }
+  
+  .badge.scheduled {
+    background: #f1c40f;
+    color: #2c3e50;
+  }
+  
+  /* Ajuste de logos: alinhamento */
+  .team-logo.left {
+    margin-right: 5px;
+  }
+  
+  .team-logo.right {
+    margin-left: 5px;
+  }
+  
+  /* Remove a linha extra de horário */
+  .time {
+    display: none;
+  }
+  
+  /* CARD DO CALENDÁRIO */
+.calendar-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    padding: 10px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+  
+  .match-details-container {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+  }
+  
+/* Ajuste do tamanho do card de detalhes */
+.match-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;               /* permite quebrar em telas pequenas */
+    gap: 40px;
+    background: #fff;
+    border-radius: 16px;           /* borda mais suave */
+    padding: 24px 32px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    max-width: 900px;
+    width: fit-content;
+    margin: 30px auto;
+  }
+  
+  .team-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 120px;
+  }
+  
+  .team-logo-big {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    margin: 8px 0;
+  }
+  
+  .team-name {
+    font-size: 0.9rem;
+    text-align: center;
+    word-wrap: break-word;
+  }
+  
+  .match-info-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 200px;
+  }
+  
+  .match-date,
+  .match-time {
+    font-size: 1rem;
+    color: #333;
+  }
+  
+  .match-league {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 8px 0;
+    font-size: 0.9rem;
+    color: #555;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .league-logo-small {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
+  
+  .match-venue span {
+    display: block;
+    font-size: 0.85rem;
+    color: #666;
+    text-align: center;
+  }
+  
+  /* Badge de classificação */
+  .badge-rank {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-bottom: 6px;
+  }
+  
+  /* Cores conforme posição */
+  .badge-rank.rank-1,
+  .badge-rank.rank-2,
+  .badge-rank.rank-3,
+  .badge-rank.rank-4 {
+    background: #2ecc71;
+  }
+  
+  .badge-rank.rank-5,
+  .badge-rank.rank-6,
+  .badge-rank.rank-7,
+  .badge-rank.rank-8,
+  .badge-rank.rank-9,
+  .badge-rank.rank-10,
+  .badge-rank.rank-11,
+  .badge-rank.rank-12,
+  .badge-rank.rank-13,
+  .badge-rank.rank-14,
+  .badge-rank.rank-15,
+  .badge-rank.rank-16 {
+    background: #95a5a6;
+  }
+  
+  .badge-rank.rank-17,
+  .badge-rank.rank-18,
+  .badge-rank.rank-19,
+  .badge-rank.rank-20 {
+    background: #e74c3c;
+  }
+  
+  .match-description {
+    max-width: 900px;
+    margin: 24px auto;
+    padding: 24px 32px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    color: #444;
+    line-height: 1.6;
+  }
+  
+  /* Título */
+  .match-description h2 {
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+    color: #2c3e50;
+    border-bottom: 2px solid #ecf0f1;
+    padding-bottom: 8px;
+  }
+  
+  /* Parágrafos */
+  .match-description p {
+    margin-bottom: 16px;
+  }
+  
+  /* Listas */
+  .match-description ul {
+    margin: 12px 0 16px 1.2em;
+    list-style-type: disc;
+  }
+  .match-description li {
+    margin-bottom: 8px;
+  }
+  
+/* Container do card */
+.standings-card {
+    font-family: 'Roboto', sans‑serif;           /* texto claro, sobre fundo escuro */
+    max-width: 900px;
+    margin: 24px auto;
+    padding: 16px 24px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  }
+  
+  /* Título */
+  .standings-card h3 {
+    font-size: 1rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #bbb;
+  }
+  
+  /* Tabela sem bordas aparentes, espaçamento uniforme */
+  .standings-card table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .standings-card thead th {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    color: #aaa;
+    padding: 8px 6px;
+    text-align: left;
+  }
+  
+  .standings-card td {
+    padding: 10px 6px;
+    font-size: 0.9rem;
+    vertical-align: middle;
+  }
+  
+  /* Número da posição centralizado */
+  .standings-card td:nth-child(1) {
+    text-align: center;
+    width: 32px;
+  }
+  
+  /* Logo e nome do time em linha */
+  .standings-card td:nth-child(2) {
+    display: flex;
+    align-items: center;
+  }
+  .standings-card .stand-team-logo {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    object-fit: contain;
+  }
+  
+  /* Linha destacada (times da partida) com borda colorida à esquerda */
+  .standings-card tbody tr.highlight {
+    font-weight: 600;
+    border-left: 4px solid #3498db;
+    background: rgba(52, 152, 219, 0.1);
+  }
+  
+  /* Hover suave em outras linhas */
+  .standings-card tbody tr:not(.highlight):hover {
+    background: rgba(255,255,255,0.05);
+  }
+  
+  /* Badge de forma (Últimos 5) */
+  .standings-card .form-cell span {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    text-align: center;
+    border-radius: 4px;
+    margin-right: 4px;
+    font-size: 0.75rem;
+    color: white;
+  }
+  
+  /* Cores semelhantes à paleta da imagem */
+  .form-win  { background: #2ecc71; }
+  .form-draw { background: #f1c40f; }
+  .form-loss { background: #e74c3c; }
+  
+
+  .match-details-container {
+    display: grid;
+    grid-template-areas:
+      "matchDetails standingsCard"
+      "matchDescription standingsCard";
+    grid-template-columns: 2fr 1fr;  /* coluna esquerda maior */
+    grid-template-rows: auto auto;   /* linhas de altura automática */
+    gap: 32px;                       /* espaçamento entre os “cells” */
+  }
+  
+  /* Associa cada elemento à sua área */
+  #matchDetails {
+    grid-area: matchDetails;
+  }
+  
+  #matchDescription {
+    grid-area: matchDescription;
+  }
+  
+  #standingsCard {
+    grid-area: standingsCard;
+  }
+  
+  @media (max-width: 768px) {
+    .match-details-container {
+      grid-template-areas:
+        "matchDetails"
+        "matchDescription"
+        "standingsCard";
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto;
+    }
+  }
+  
+  
+  
+
+  
+  
