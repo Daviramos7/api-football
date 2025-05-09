@@ -36,15 +36,47 @@ function formatBR(d) {
   });
 }
 
+// Verifica se uma data UTC corresponde à data selecionada (em UTC)
+function isSameLocalDate(utcDateStr, selectedDate) {
+  const gameDate = new Date(utcDateStr);
+
+  return (
+    gameDate.getFullYear() === selectedDate.getFullYear() &&
+    gameDate.getMonth() === selectedDate.getMonth() &&
+    gameDate.getDate() === selectedDate.getDate()
+  );
+}
+
+
 // Carrega e renderiza jogos do dia selecionado
 async function loadGamesForDate() {
+
+  
+
   dateSpan.textContent = formatBR(currentDate);
   gamesDiv.innerHTML = '<p>Carregando jogos...</p>';
 
   const dateStr = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD
   try {
     const { response } = await fetchFromAPI(`fixtures?date=${dateStr}`);
-    const jogos = response.filter(fx => allowedIds.has(fx.league.id));
+
+    console.log('Data selecionada (UTC):', currentDate.toISOString());
+response.forEach(fx => {
+  console.log(
+    `Jogo: ${fx.teams.home.name} x ${fx.teams.away.name}`,
+    `| Data UTC: ${fx.fixture.date}`,
+    `| Liga ID: ${fx.league.id}`
+  );
+});
+
+
+    // Filtra apenas jogos das ligas brasileiras e da data correta em UTC
+    const jogos = response.filter(fx => {
+      return (
+        allowedIds.has(fx.league.id) &&
+        isSameLocalDate(fx.fixture.date, currentDate)
+      );
+    });
 
     if (jogos.length === 0) {
       gamesDiv.innerHTML = '<p>Não há jogos destes campeonatos nesta data.</p>';
@@ -95,7 +127,6 @@ async function loadGamesForDate() {
                   badgeHTML = `<div class="badge live">${g.fixture.status.elapsed}'</div>`;
                 }
 
-                // Link para página de detalhes
                 const matchUrl = `match.html?id=${g.fixture.id}`;
 
                 return `
@@ -126,6 +157,7 @@ async function loadGamesForDate() {
 // Inicializa na data de hoje
 loadGamesForDate();
 
+// Marca link ativo no menu
 const links = document.querySelectorAll('nav ul li a');
 const currentPage = window.location.pathname.split('/').pop();
 
