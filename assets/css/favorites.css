@@ -1,16 +1,208 @@
-.favorite-btn {
+/* Estilos para a página de favoritos */
+.favorites-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 2rem;
+    justify-items: center;
+  }
+  
+  /* Card de time */
+  .favorite-card, .team-card, .player-card {
+    width: 300px;
+    margin: 0 auto 2rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative; /* Necessário para posicionar o botão de favorito */
+  }
+  
+  .favorite-card:hover, .team-card:hover, .player-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+  
+  /* Cabeçalho do card */
+  .team-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Logo do time */
+  .team-logo {
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+    margin: 0 auto;
+    display: block;
+    background: white;
+    padding: 10px;
+    transition: transform 0.3s ease;
+  }
+  
+  .favorite-card:hover .team-logo, .team-card:hover .team-logo {
+    transform: scale(1.1);
+  }
+  
+  /* Container de foto de jogador */
+  .player-photo-container {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 1.5rem;
+  }
+  
+  .player-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+    transition: transform 0.3s ease;
+  }
+  
+  .favorite-card:hover .player-photo, .player-card:hover .player-photo {
+    transform: scale(1.1);
+  }
+  
+  /* Overlay de logo no jogador */
+  .team-logo-overlay {
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    border-radius: 50%;
+    background: white;
+    border: 1px solid #ddd;
+    padding: 2px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  /* Informações do time */
+  .team-info, .player-info, .league-info {
+    flex: 1;
+    text-align: center;
+  }
+  
+  .team-info h3, .player-info h3, .league-info h3 {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+  }
+  
+  .team-location {
+    color: #666;
+    font-size: 1rem;
+    margin: 0.5rem 0;
+  }
+  
+  .team-leagues, .player-leagues {
+    color: #2196F3;
+    font-weight: 500;
+    font-size: 1.1rem;
+    margin: 1rem 0;
+  }
+  
+  /* Garantir que os textos tenham a mesma cor em todos os cards */
+  .player-info p, .team-info p {
+    color: #666;
+    font-size: 1rem;
+    margin: 0.5rem 0;
+  }
+  
+  .venue-info {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    text-align: left;
+  }
+  
+  /* Mensagem de sem favoritos */
+  .no-favorites {
+    text-align: center;
+    font-size: 1.2rem;
+    padding: 2rem;
+    background: white;
+    max-width: 600px;
+    color: #666;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin: 2rem auto;
+  }
+  
+  /* Botão de remover favorito */
+  .remove-btn {
+    margin-top: 15px;
+    padding: 8px 15px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    text-align: center;
+  }
+  
+  .remove-btn:hover {
+    background-color: #d32f2f;
+    transform: translateY(-2px);
+  }
+  
+  .remove-btn:active {
+    transform: translateY(0);
+  }
+  
+  /* Container para o botão de favorito */
+  .favorite-button-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+  }
+  
+  /* Estilo para o botão de favorito */
+  .favorite-btn {
     background: none;
     border: none;
     font-size: 1.5rem;
     color: #ccc;
     cursor: pointer;
     transition: color 0.3s ease;
-}
-
-.favorite-btn:hover {
+    padding: 5px;
+    outline: none;
+  }
+  
+  .favorite-btn:hover {
     color: #f39c12;
-}
-
-.favorite-btn:active {
+  }
+  
+  .favorite-btn:active {
     transform: scale(0.9);
-}
+  }
+  
+  /* Estilo para o botão de favorito quando o item está favoritado */
+  .favorite-btn.favored {
+    color: #f39c12;
+  }
+  
+  /* Responsividade */
+  @media (max-width: 768px) {
+    .favorites-container {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .favorites-container {
+      grid-template-columns: 1fr;
+      padding: 1rem;
+    }
+  }
