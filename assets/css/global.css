@@ -61,6 +61,12 @@ nav ul li a:hover {
   background-color: #454647;
 }
 
+nav ul li a.active {
+  background-color: #454647;
+  color: #ffffff;
+  text-decoration: underline;
+}
+
 /* Estilo geral para formulários e inputs */
 form {
   width: 300px;

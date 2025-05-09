@@ -245,3 +245,9 @@
 .favorite-btn.favored {
   color: #f39c12;
 }
+
+nav ul li a.active {
+  background-color: #454647;
+  color: #ffffff;
+  text-decoration: underline;
+}

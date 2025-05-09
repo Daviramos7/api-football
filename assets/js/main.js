@@ -125,3 +125,14 @@ async function loadGamesForDate() {
 
 // Inicializa na data de hoje
 loadGamesForDate();
+
+const links = document.querySelectorAll('nav ul li a');
+const currentPage = window.location.pathname.split('/').pop();
+
+links.forEach(link => {
+  const linkHref = link.getAttribute('href');
+
+  if (linkHref === currentPage) {
+    link.classList.add('active');
+  }
+});
