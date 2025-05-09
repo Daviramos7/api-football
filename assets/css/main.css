@@ -1,0 +1,203 @@
+/* Cartão de jogo */
+.game-card {
+    background: #1e1e1e;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .game-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  }
+  
+  /* Estilo específico para jogos finalizados */
+  .game-card.finished {
+    border-color: #e74c3c;
+  }
+  .game-card.finished .score,
+  .game-card.finished .teams,
+  .game-card.finished .time {
+    color: #e74c3c;
+  }
+  
+  /* Minuto de jogo */
+  .minute {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #007bff;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: bold;
+  }
+  
+  /* Logos e placar */
+  .logos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .team-logo {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+  }
+  .score {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #ffffff;
+  }
+  
+  /* Nome dos times */
+  .teams {
+    font-size: 1rem;
+    color: #ffffff;
+    margin-top: 8px;
+  }
+  
+  /* Horário */
+  .time {
+    margin-top: 6px;
+    font-size: 0.9rem;
+    color: #666;
+  }
+  
+/* Badge para minuto/horário */
+.badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: bold;
+  }
+  
+  .badge.live {
+    background: #007bff;
+    color: white;
+  }
+  
+  .badge.scheduled {
+    background: #696865;
+    color: #ffffff;
+  }
+  
+  /* Ajuste de logos: alinhamento */
+  .team-logo.left {
+    margin-right: 5px;
+  }
+  
+  .team-logo.right {
+    margin-left: 5px;
+  }
+  
+  /* Remove a linha extra de horário */
+  .time {
+    display: none;
+  }
+  
+  /* CARD DO CALENDÁRIO */
+.calendar-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #191818;
+    padding: 10px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+  
+  .cal-btn {
+    background-color: #252525;
+  }
+  
+  .match-details-container {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+  }
+  
+/* Ajuste do tamanho do card de detalhes */
+.match-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;               /* permite quebrar em telas pequenas */
+    gap: 40px;
+    background: #fff;
+    border-radius: 16px;           /* borda mais suave */
+    padding: 24px 32px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    max-width: 900px;
+    width: fit-content;
+    margin: 30px auto;
+  }
+  
+  .team-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 120px;
+  }
+  
+  .team-logo-big {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    margin: 8px 0;
+  }
+  
+  .team-name {
+    font-size: 0.9rem;
+    text-align: center;
+    word-wrap: break-word;
+  }
+  
+  .match-info-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 200px;
+  }
+  
+  .match-date,
+  .match-time {
+    font-size: 1rem;
+    color: #333;
+  }
+  
+  .match-league {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 8px 0;
+    font-size: 0.9rem;
+    color: #555;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .league-logo-small {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
+  
+  .match-venue span {
+    display: block;
+    font-size: 0.85rem;
+    color: #666;
+    text-align: center;
+  }

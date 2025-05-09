@@ -96,7 +96,7 @@ async function loadGamesForDate() {
                 }
 
                 // Link para página de detalhes
-                const matchUrl = `partida.html?id=${g.fixture.id}`;
+                const matchUrl = `match.html?id=${g.fixture.id}`;
 
                 return `
                   <a href="${matchUrl}" class="game-link">
