@@ -1,44 +1,61 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Jogos do Dia</title>
-  <link rel="stylesheet" href="assets/css/global.css"/>
+  <title>Página Principal</title>
+  <link rel="stylesheet" href="assets/css/global.css">
   <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body>
-    <header>
-        <h1>Jogos do Dia</h1>
-        <nav>
-            <ul class="menu">
-                <li class="menu-item active"><a href="main.html" class="active">Página Principal</a></li>
-                <li class="menu-item"><a href="search.html">Buscar</a></li>
-                <li class="menu-item"><a href="favorites.html">Favoritos</a></li>
-                <li class="menu-item"><a href="profile.html">Perfil</a></li>
-            </ul>
-        </nav>
-    </header>
+  <header>
+    <h1>Página Principal</h1>
+    <nav>
+      <ul>
+        <li><a href="main.html" class="active">Principal</a></li>
+        <li><a href="search.html">Buscar</a></li>
+        <li><a href="favorites.html">Favoritos</a></li>
+      </ul>
+    </nav>
+  </header>
 
-  <main class="container">
-    <!-- calendário -->
-    <div class="calendar-card">
-        <button id="prevDay" class="cal-btn" aria-label="Dia anterior">&lt;</button>
-        <span id="currentDate" class="cal-date"></span>
-        <button id="nextDay" class="cal-btn" aria-label="Próximo dia">&gt;</button>
+  <div class="main-container">
+    <!-- Jogos do dia -->
+    <section class="today-matches">
+      <div class="date-navigation">
+        <button id="prevDay">←</button>
+        <span id="currentDate"></span>
+        <button id="nextDay">→</button>
       </div>
-      
+      <div id="gamesList" class="matches-container"></div>
+    </section>
 
-    <!-- lista de jogos -->
-    <div id="gamesList" class="games">
-      <!-- cards inseridos aqui via JS -->
-    </div>
-  </main>
+    <!-- Favoritos -->
+    <aside class="favorites-section">
+      <h2>Favoritos</h2>
+      <div id="favoriteTeams"></div>
+      <div id="favoritePlayers"></div>
+    </aside>
 
-  <footer>
-    <p>&copy; 2025 API Football</p>
-  </footer>
+    <!-- Classificação -->
+    <section class="standings-section">
+      <div class="standings-header">
+        <h2>Classificação</h2>
+      <select id="leagueSelect">
+          <option value="71">Série A</option>
+          <option value="72">Série B</option>
+          <option value="75">Série C</option>
+          <option value="76">Série D</option>
+          <option value="73">Copa do Brasil</option>
+        </select>
+        <!-- apenas para Série D -->
+        <select id="groupSelect" style="display:none; margin-left:.5rem;"></select>
+      </div>
+      <div id="standingsList"></div>
+    </section>
+  </div>
 
-  <script type="module" src="assets/js/main.js"></script>
+  <script src="assets/js/favorites.js" type="module"></script>
+  <script src="assets/js/main.js" type="module"></script>
 </body>
 </html>
