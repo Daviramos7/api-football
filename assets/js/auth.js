@@ -16,12 +16,24 @@ document.getElementById('registerForm')?.addEventListener('submit', (e) => {
     const password = document.getElementById('password').value;
 
     const users = getFromLocalStorage('users') || [];
-    users.push({ name, email, password });
-    saveToLocalStorage('users', users);
 
-    alert('Cadastro realizado com sucesso!');
-    window.location.href = 'index.html';
+    // Verifica se já existe usuário com o mesmo e-mail
+    const alreadyExists = users.some(u => u.email === email);
+    if (alreadyExists) {
+        showModalMessage('Este e-mail já está cadastrado!');
+        return;
+    }
+
+    const newUser = { name, email, password };
+    users.push(newUser);
+    saveToLocalStorage('users', users);
+    saveToLocalStorage('session', newUser);
+
+    showModalMessage('Cadastro realizado com sucesso!', () => {
+        window.location.href = 'main.html';
+    });
 });
+
 
 // Login de usuário
 document.getElementById('loginForm')?.addEventListener('submit', (e) => {
@@ -33,10 +45,29 @@ document.getElementById('loginForm')?.addEventListener('submit', (e) => {
     const user = users.find((u) => u.email === email && u.password === password);
 
     if (user) {
-        saveToLocalStorage('session', user);
-        alert('Login realizado com sucesso!');
+    saveToLocalStorage('session', user);
+    showModalMessage('Login realizado com sucesso!', () => {
         window.location.href = 'main.html';
-    } else {
-        alert('E-mail ou senha inválidos!');
-    }
+    });
+} else {
+    showModalMessage('E-mail ou senha inválidos!');
+}
+
 });
+
+function showModalMessage(message, callback) {
+    const modal = document.getElementById('popupModal');
+    const msg = document.getElementById('modalMessage');
+    const closeBtn = document.getElementById('closeModal');
+
+    msg.textContent = message;
+    modal.showModal();
+
+    const handler = () => {
+        modal.close();
+        closeBtn.removeEventListener('click', handler)
+        if (callback) callback();
+    };
+
+    closeBtn.addEventListener('click', handler);
+}

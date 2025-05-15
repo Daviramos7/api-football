@@ -7,6 +7,10 @@ body {
   color: #f5f5f5;
 }
 
+p {
+  text-align: center;
+}
+
 h1, h2, h3 {
   text-align: center;
   color: #ffffff;
@@ -144,4 +148,40 @@ footer {
 
 #userEmail {
     text-align: center;
+}
+
+label {
+  color: #121212;
+}
+
+/* Estilo do modal */
+dialog#popupModal {
+    border: none;
+    border-radius: 12px;
+    padding: 20px 30px;
+    background-color: #ffffff;
+    color: #121212;
+    font-family: 'Roboto', sans-serif;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    width: 80%;
+    max-width: 400px;
+}
+
+#popupModal::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+#popupModal button#closeModal {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+#popupModal button#closeModal:hover {
+    background-color: #0056b3;
 }
