@@ -35,7 +35,7 @@ document.getElementById('loginForm')?.addEventListener('submit', (e) => {
     if (user) {
         saveToLocalStorage('session', user);
         alert('Login realizado com sucesso!');
-        window.location.href = 'principal.html';
+        window.location.href = 'main.html';
     } else {
         alert('E-mail ou senha inválidos!');
     }

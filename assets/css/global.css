@@ -109,8 +109,10 @@ select:focus {
 
 button,
 input[type="submit"] {
-  width: 100%;
+  width: 200px;
   padding: 12px;
+  margin-left: auto;
+  margin-right: auto;
   background: #007bff;
   color: white;
   border: none;
@@ -120,6 +122,9 @@ input[type="submit"] {
   cursor: pointer;
   transition: all 0.3s ease;
   box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 button:hover,
@@ -131,4 +136,12 @@ input[type="submit"]:hover {
 button:active,
 input[type="submit"]:active {
   transform: translateY(0);
+}
+
+footer {
+  text-align: center;
+}
+
+#userEmail {
+    text-align: center;
 }

@@ -11,7 +11,7 @@ if (!user) {
 // Logout do usuário
 document.getElementById('logout').addEventListener('click', () => {
     localStorage.removeItem('session');
-    window.location.href = 'index.html';
+    window.location.href = 'main.html';
 });
 
 const links = document.querySelectorAll('nav ul li a');
