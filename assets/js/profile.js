@@ -2,7 +2,7 @@
 const user = JSON.parse(localStorage.getItem('session'));
 if (!user) {
     alert('Você precisa estar logado!');
-    window.location.href = 'index.html';
+    window.location.href = 'profile.html';
 } else {
     document.getElementById('userName').innerText = `Nome: ${user.name}`;
     document.getElementById('userEmail').innerText = `E-mail: ${user.email}`;
