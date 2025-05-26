@@ -3,35 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfil</title>
+    <title>Meu Perfil - Football Manager</title>
     <link rel="stylesheet" href="assets/css/global.css">
-    <link rel="stylesheet" href="assets/css/profile.css">
 </head>
 <body>
     <header>
-        <h1>Perfil do Usuário</h1>
+        <h1>Meu Perfil</h1>
         <nav>
             <ul>
                 <li><a href="main.html">Página Principal</a></li>
-                <li><a href="search.html">Buscar</a></li>
-                <li><a href="favorites.html">Favoritos</a></li>
-                <li><a href="profile.html">Perfil</a></li>
+                <li><a href="listing.html">Listagem de Usuários</a></li>
+                <li><a href="profile.html" class="active">Perfil</a></li>
+                <li><a href="registre.html">Cadastro de Usuário</a></li>
             </ul>
         </nav>
     </header>
 
-    <main>
-        <div class="container">
-            <h2 id="userName"></h2>
-            <p id="userEmail"></p>
-            <button id="logout">Sair</button>
-        </div>
+    <main class="container">
+        <section id="user-profile-section">
+            <h2>Meus Dados</h2>
+            <form id="profile-form">
+                <input type="hidden" id="profileUserId"> <div class="form-group">
+                    <label for="profileUsername">Nome:</label>
+                    <input type="text" id="profileUsername" name="profileUsername" required>
+                </div>
+                <div class="form-group">
+                    <label for="profileEmail">Email:</label>
+                    <input type="email" id="profileEmail" name="profileEmail" required disabled> </div>
+                <div class="form-group">
+                    <label for="profilePassword">Mudar Senha (opcional):</label>
+                    <input type="password" id="profilePassword" name="profilePassword" placeholder="Deixe em branco para manter a senha atual">
+                </div>
+                <div class="form-group">
+                    <label for="profileCity">Cidade:</label>
+                    <input type="text" id="profileCity" name="profileCity">
+                </div>
+                <div class="form-group">
+                    <label for="profileCountry">País:</label>
+                    <input type="text" id="profileCountry" name="profileCountry">
+                </div>
+                 <div class="form-group">
+                    <label for="profileRole">Papel:</label>
+                    <input type="text" id="profileRole" name="profileRole" disabled> </div>
+                <button type="submit" class="btn primary-btn">Salvar Alterações</button>
+            </form>
+            <button id="logout-btn" class="btn primary-btn" style="background-color: var(--accent); margin-top: 15px;">Logout</button>
+        </section>
+
+        <section id="favorite-teams-section">
+            <h2>Meus Times Favoritos</h2>
+            <div id="favoriteTeams" class="cards-container">
+                </div>
+        </section>
+
+        <section id="favorite-players-section">
+            <h2>Meus Jogadores Favoritos</h2>
+            <div id="favoritePlayers" class="cards-container">
+                </div>
+        </section>
     </main>
 
     <footer>
         <p>&copy; 2025 API Football</p>
     </footer>
 
-    <script src="assets/js/profile.js"></script>
+    <script type="module" src="assets/js/auth.js"></script>
+    <script type="module" src="assets/js/profile.js"></script>
 </body>
 </html>

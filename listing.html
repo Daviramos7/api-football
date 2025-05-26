@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listagem de Usuários - Football Manager</title>
+    <link rel="stylesheet" href="assets/css/global.css">
+</head>
+<body>
+    <header>
+        <h1>Listagem de Usuários</h1>
+        <nav>
+            <ul>
+                <li><a href="main.html">Página Principal</a></li>
+                <li><a href="listing.html" class="active">Listagem de Usuários</a></li>
+                <li><a href="profile.html">Perfil</a></li>
+                <li><a href="registre.html">Cadastro de Usuário</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <h2>Usuários Cadastrados</h2>
+
+        <section id="filter-section">
+            <input type="text" id="search-input" placeholder="Buscar por nome ou email..." class="search-input">
+            <button id="add-new-btn" class="btn primary-btn">Adicionar Novo Usuário</button>
+        </section>
+
+        <section id="data-list-section">
+            <table id="data-table">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Cidade</th>
+                        <th>País</th>
+                        <th>Papel</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="data-table-body">
+                    </tbody>
+            </table>
+            <p id="no-results" style="display: none; text-align: center; padding: 20px;">Nenhum usuário encontrado.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 API Football</p>
+    </footer>
+
+    <script type="module" src="assets/js/auth.js"></script>
+    <script type="module" src="assets/js/listing.js"></script>
+</body>
+</html>

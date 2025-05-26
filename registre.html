@@ -3,24 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro</title>
+    <title>Cadastro - Football Manager</title>
     <link rel="stylesheet" href="assets/css/global.css">
 </head>
 <body>
     <header>
         <h1>Cadastro</h1>
+        <nav>
+            <ul>
+                <li><a href="main.html">Página Principal</a></li>
+                <li><a href="listing.html">Listagem de Usuários</a></li>
+                <li><a href="profile.html">Perfil</a></li>
+                <li><a href="registre.html" class="active">Cadastro de Usuário</a></li>
+            </ul>
+        </nav>
     </header>
 
-    <main>
+    <main class="container">
         <form id="registerForm">
-            <label for="name">Nome:</label>
-            <input type="text" id="name" placeholder="Digite seu nome" required>
-            
-            <label for="email">E-mail:</label>
-            <input type="email" id="email" placeholder="Digite seu e-mail" required>
-            
-            <label for="password">Senha:</label>
-            <input type="password" id="password" placeholder="Digite sua senha" required>
+            <input type="hidden" id="userId"> <div class="form-group">
+                <label for="name">Nome:</label>
+                <input type="text" id="name" placeholder="Digite seu nome" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">E-mail:</label>
+                <input type="email" id="email" placeholder="Digite seu e-mail" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Senha:</label>
+                <input type="password" id="password" placeholder="Digite sua senha" required>
+            </div>
+
+            <div class="form-group">
+                <label for="city">Cidade:</label>
+                <input type="text" id="city" placeholder="Digite sua cidade">
+            </div>
+
+            <div class="form-group">
+                <label for="country">País:</label>
+                <input type="text" id="country" placeholder="Digite seu país">
+            </div>
+
+            <div class="form-group">
+                <label for="role">Papel:</label>
+                <select id="role">
+                    <option value="Usuário Padrão">Usuário Padrão</option>
+                    <option value="Administrador">Administrador</option>
+                </select>
+            </div>
             
             <button type="submit">Cadastrar</button>
         </form>
@@ -36,6 +68,6 @@
         <p>&copy; 2025 API Football</p>
     </footer>
 
-    <script src="assets/js/auth.js"></script>
-</body>
+    <script type="module" src="assets/js/auth.js"></script>
+    </body>
 </html>
