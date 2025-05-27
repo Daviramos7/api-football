@@ -1,110 +1,24 @@
-// Chave para armazenar os favoritos no localStorage
-const FAVORITES_KEY = 'footballFavorites';
-const FAVORITES_CHANGED_EVENT = 'favoritesChanged';
+// assets/js/profile.js
+// Importa tudo o que é necessário de auth.js, incluindo as chaves e as funções de favoritos
+import { 
+    getLoggedUser, 
+    addOrUpdateUser, 
+    logout, 
+    getFavorites, 
+    removeFromFavorites, 
+    showModalMessage, 
+    FAVORITES_CHANGED_EVENT, // Importa a constante do auth.js
+    FAVORITES_KEY           // Importa a constante do auth.js
+} from './auth.js'; 
 
-// Função para obter os favoritos do localStorage
-function getFavorites() {
-    const saved = localStorage.getItem(FAVORITES_KEY);
-    return saved ? JSON.parse(saved) : { teams: [], players: [] };
-}
-
-// Função para salvar os favoritos no localStorage
-function saveFavorites(favorites) {
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-    window.dispatchEvent(new CustomEvent(FAVORITES_CHANGED_EVENT, {
-        detail: { favorites }
-    }));
-}
-
-// Verifica se um item é favorito
-function isFavorite(type, item) {
-    if (!item || !item.id) return false;
-    const favorites = getFavorites();
-    const id = Number(item.id); // Garante que o ID seja número
-    return favorites[type]?.some(fav => Number(fav.id) === id);
-}
-
-// Adiciona/remover favorito
-function saveToFavorites(type, item) {
-    try {
-        let itemData = item;
-        if (typeof item === 'string') {
-            itemData = JSON.parse(item);
-        }
-
-        const id = Number(itemData.id); // Garante que o ID seja número
-        const favorites = getFavorites();
-
-        if (!favorites[type]) {
-            favorites[type] = [];
-        }
-
-        const index = favorites[type].findIndex(fav => Number(fav.id) === id);
-
-        if (index === -1) {
-            // Adicionar
-            const simplifiedData = {
-                id,
-                name: itemData.name,
-                photo: itemData.photo || 'assets/img/player-placeholder.png',
-                age: itemData.age || 'Não informada',
-                nationality: itemData.nationality === 'Brazil' ? 'Brasil' : itemData.nationality || 'Não informada',
-                team: {
-                    name: itemData.team?.name || 'Não informado',
-                    logo: itemData.team?.logo || 'assets/img/team-placeholder.png'
-                },
-                leagues: itemData.leagues || ['Não informado'],
-                logo: itemData.logo || 'assets/img/team-placeholder.png',
-                city: itemData.city || 'Brasil',
-                country: itemData.country === 'Brazil' ? 'Brasil' : itemData.country || 'Brasil'
-            };
-            
-            favorites[type].push(simplifiedData);
-            alert(`${type === 'teams' ? 'Time' : 'Jogador'} adicionado aos favoritos!`);
-        } else {
-            // Remover
-            favorites[type].splice(index, 1);
-            alert(`${type === 'teams' ? 'Time' : 'Jogador'} removido dos favoritos.`);
-        }
-
-        saveFavorites(favorites);
-        updateFavoriteButton(type, id, index === -1);
-    } catch (error) {
-        console.error('Erro ao salvar favorito:', error);
-    }
-}
-
-// Atualiza visualmente o botão de favorito
-function updateFavoriteButton(type, itemId, isFavored) {
-    const buttons = document.querySelectorAll(
-        `.favorite-btn[data-type="${type}"][data-id="${Number(itemId)}"]`
-    );
-    
-    buttons.forEach(button => {
-        button.classList.toggle('favored', isFavored);
-    });
-}
-
-// Sincroniza todos os botões com o estado do localStorage
-function syncFavoriteButtons() {
-    const favorites = getFavorites();
-    ['teams', 'players'].forEach(type => {
-        document.querySelectorAll(`.favorite-btn[data-type="${type}"]`).forEach(button => {
-            const id = Number(button.getAttribute('data-id'));
-            const isFav = favorites[type]?.some(fav => Number(fav.id) === id);
-            button.classList.toggle('favored', isFav);
-        });
-    });
-}
-
-// Renderiza cartão de jogador nos favoritos
+// Funções para renderizar os cards de favoritos (mantidas aqui no profile.js)
 function renderFavoritePlayerCard(player) {
     return `
-        <div class="card player-card">
+        <div class="card player-card" data-id="${player.id}">
             <div class="player-photo-container">
                 <img src="${player.photo || 'assets/img/player-placeholder.png'}" alt="${player.name}" class="player-photo" onerror="this.onerror=null; this.src='assets/img/player-placeholder.png'">
-                ${player.team?.logo ? 
-                    `<img src="${player.team.logo}" alt="${player.team.name}" class="team-logo-overlay" onerror="this.onerror=null; this.src='assets/img/team-placeholder.png'">` 
+                ${player.team?.logo ?
+                    `<img src="${player.team.logo}" alt="${player.team.name}" class="team-logo-overlay" onerror="this.onerror=null; this.src='assets/img/team-placeholder.png'">`
                     : ''}
             </div>
             <div class="player-info">
@@ -119,13 +33,12 @@ function renderFavoritePlayerCard(player) {
     `;
 }
 
-// Renderiza cartão de time nos favoritos
 function renderFavoriteTeamCard(team) {
     return `
-        <div class="card team-card">
+        <div class="card team-card" data-id="${team.id}">
             <div class="team-header">
-                <img src="${team.logo || 'assets/img/team-placeholder.png'}" 
-                     alt="${team.name}" 
+                <img src="${team.logo || 'assets/img/team-placeholder.png'}"
+                     alt="${team.name}"
                      class="team-logo"
                      onerror="this.onerror=null; this.src='assets/img/team-placeholder.png'">
             </div>
@@ -139,108 +52,130 @@ function renderFavoriteTeamCard(team) {
     `;
 }
 
-// Carrega favoritos na página favorites.html
-function loadFavorites() {
-    const favorites = getFavorites();
+// Função para carregar os dados do usuário logado no formulário de perfil
+function loadUserProfile() {
+    const loggedUser = getLoggedUser();
+    if (loggedUser) {
+        document.getElementById('profileUserId').value = loggedUser.id;
+        document.getElementById('profileUsername').value = loggedUser.name;
+        document.getElementById('profileEmail').value = loggedUser.email; // Email desabilitado, mas preenchido
+        document.getElementById('profileCity').value = loggedUser.city || '';
+        document.getElementById('profileCountry').value = loggedUser.country || '';
+        document.getElementById('profileRole').value = loggedUser.role || 'Usuário Padrão';
+    } else {
+        // Se não houver usuário logado, redireciona para a página de login
+        showModalMessage('Você precisa estar logado para acessar esta página.', () => {
+            window.location.href = 'login.html';
+        });
+    }
+}
+
+// Função para carregar e exibir favoritos na página de perfil
+function loadFavoritesOnProfile() {
+    const favorites = getFavorites(); // Usa a função importada de auth.js
     
-    // Times
     const teamsContainer = document.getElementById('favoriteTeams');
     if (teamsContainer) {
         if (!favorites.teams || favorites.teams.length === 0) {
-            teamsContainer.innerHTML = '<p class="no-favorites">Nenhum time favorito.</p>';
+            teamsContainer.innerHTML = '<p class="no-favorites">Nenhum time favorito adicionado.</p>';
         } else {
             teamsContainer.innerHTML = favorites.teams.map(renderFavoriteTeamCard).join('');
         }
     }
 
-    // Jogadores
     const playersContainer = document.getElementById('favoritePlayers');
     if (playersContainer) {
         if (!favorites.players || favorites.players.length === 0) {
-            playersContainer.innerHTML = '<p class="no-favorites">Nenhum jogador favorito.</p>';
+            playersContainer.innerHTML = '<p class="no-favorites">Nenhum jogador favorito adicionado.</p>';
         } else {
             playersContainer.innerHTML = favorites.players.map(renderFavoritePlayerCard).join('');
         }
     }
 }
 
-// Remove favorito diretamente
-function removeFromFavorites(type, itemId) {
-    const favorites = getFavorites();
-    const id = Number(itemId);
-    
-    if (favorites[type]) {
-        favorites[type] = favorites[type].filter(fav => Number(fav.id) === id ? false : true);
-        saveFavorites(favorites);
-        updateFavoriteButton(type, id, false);
-        
-        // Atualiza visualmente apenas se estiver na página de favoritos
-        if (window.location.pathname.includes('favorites.html')) {
-            const cardToRemove = document.querySelector(`.card[data-id="${id}"]`);
-            if (cardToRemove) {
-                cardToRemove.remove();
-                
-                // Verifica se a seção ficou vazia
-                const container = type === 'teams' 
-                    ? document.getElementById('favoriteTeams') 
-                    : document.getElementById('favoritePlayers');
-                
-                if (container && container.children.length === 0) {
-                    container.innerHTML = '<p class="no-favorites">Nenhum item favorito.</p>';
+document.addEventListener('DOMContentLoaded', () => {
+    loadUserProfile(); // Carrega os dados do usuário ao iniciar
+    loadFavoritesOnProfile(); // Carrega e exibe os favoritos
+
+    // Adiciona o listener para o formulário de perfil
+    const profileForm = document.getElementById('profile-form');
+    if (profileForm) {
+        profileForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const loggedUser = getLoggedUser();
+            if (!loggedUser) {
+                showModalMessage('Erro: Nenhum usuário logado.');
+                return;
+            }
+
+            const userId = document.getElementById('profileUserId').value;
+            const username = document.getElementById('profileUsername').value;
+            const newPassword = document.getElementById('profilePassword').value;
+            const city = document.getElementById('profileCity').value;
+            const country = document.getElementById('profileCountry').value;
+            // O email e o papel não são editáveis pelo usuário no perfil, mas são mantidos no objeto
+            const email = loggedUser.email;
+            const role = loggedUser.role;
+
+            // Lógica de senha para administradores no perfil (já implementada)
+            let passwordToSave = loggedUser.password;
+            if (newPassword) {
+                if (role === 'Administrador' && newPassword !== '0000') {
+                    showModalMessage('Como administrador, sua senha deve ser "0000". Não é possível alterar para outra senha.');
+                    document.getElementById('profilePassword').value = '';
+                    return;
+                } else if (role === 'Administrador' && newPassword === '0000') {
+                    passwordToSave = newPassword;
+                } else {
+                    passwordToSave = newPassword;
                 }
             }
+
+            const userData = {
+                id: parseInt(userId),
+                name: username,
+                email: email,
+                password: passwordToSave,
+                city: city,
+                country: country,
+                role: role
+            };
+
+            // addOrUpdateUser atualiza os dados do usuário no localStorage
+            addOrUpdateUser(userData); 
+            
+            // Atualiza a sessão para refletir as mudanças
+            const updatedSession = {
+                id: loggedUser.id,
+                name: username,
+                email: email,
+                role: role,
+                city: city,
+                country: country
+            };
+            localStorage.setItem('session', JSON.stringify(updatedSession));
+
+            showModalMessage('Dados do perfil salvos com sucesso!');
+            loadUserProfile(); // Recarrega o perfil para refletir as mudanças
+            document.getElementById('profilePassword').value = ''; // Limpa o campo de senha após a atualização
+        });
+    }
+
+    // Listener para o botão de logout
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logout);
+    }
+
+    // Ouve o evento de mudança de favoritos para atualizar o perfil em tempo real
+    window.addEventListener(FAVORITES_CHANGED_EVENT, loadFavoritesOnProfile);
+    window.addEventListener('storage', (e) => { // Para quando outra aba mudar favoritos
+        if (e.key === FAVORITES_KEY) { // Usa a constante importada
+            loadFavoritesOnProfile();
         }
-    }
-}
-
-// Exportando funções
-// favorites.js
-export { 
-    saveToFavorites, 
-    removeFromFavorites, 
-    isFavorite, 
-    updateFavoriteButton,
-    syncFavoriteButtons,
-    FAVORITES_CHANGED_EVENT,
-    getFavorites 
-};
-
-// Eventos globais
-window.addEventListener('storage', (e) => {
-    if (e.key === FAVORITES_KEY) {
-        syncFavoriteButtons();
-        if (window.location.pathname.includes('favorites.html')) {
-            loadFavorites();
-        }
-    }
+    });
 });
 
-window.addEventListener(FAVORITES_CHANGED_EVENT, () => {
-    syncFavoriteButtons();
-    if (window.location.pathname.includes('favorites.html')) {
-        loadFavorites();
-    }
-});
-
-// Disponibilizando globalmente
-window.saveToFavorites = saveToFavorites;
-window.removeFromFavorites = removeFromFavorites;
-
-// Inicializa ao carregar a página
-document.addEventListener('DOMContentLoaded', () => {
-    syncFavoriteButtons();
-    if (window.location.pathname.includes('favorites.html')) {
-        loadFavorites();
-    }
-});
-
-const links = document.querySelectorAll('nav ul li a');
-const currentPage = window.location.pathname.split('/').pop();
-
-links.forEach(link => {
-  const linkHref = link.getAttribute('href');
-
-  if (linkHref === currentPage) {
-    link.classList.add('active');
-  }
-});
+// Tornar removeFromFavorites globalmente acessível para os botões de remover nos cards
+window.removeFromFavorites = removeFromFavorites; // Esta função é importada de auth.js

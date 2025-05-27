@@ -1,10 +1,10 @@
 // assets/js/auth.js
 
 // Chaves para localStorage
-const USERS_KEY = 'users'; // Sua chave existente para usuários cadastrados
+const USERS_KEY = 'users';
 const SESSION_KEY = 'session';
-const FAVORITES_KEY = 'footballFavorites'; // Do seu favorites.js
-const FAVORITES_CHANGED_EVENT = 'favoritesChanged'; // Do seu favorites.js
+const FAVORITES_KEY = 'footballFavorites';
+const FAVORITES_CHANGED_EVENT = 'favoritesChanged';
 
 // --- Funções de Utilitários de LocalStorage ---
 function saveToLocalStorage(key, value) {
@@ -16,18 +16,15 @@ function getFromLocalStorage(key) {
     return saved ? JSON.parse(saved) : null;
 }
 
-// --- Funções de Usuários (Centralizado aqui) ---
+// --- Funções de Usuários ---
 
-// Retorna todos os usuários
 export function getAllUsers() {
     return getFromLocalStorage(USERS_KEY) || [];
 }
 
-// Adiciona um novo usuário ou atualiza um existente
 export function addOrUpdateUser(userData) {
     let users = getAllUsers();
     
-    // Gerar um ID único se for um novo usuário
     if (!userData.id) {
         userData.id = users.length > 0 ? Math.max(...users.map(u => u.id || 0)) + 1 : 1;
     }
@@ -35,113 +32,177 @@ export function addOrUpdateUser(userData) {
     const existingUserIndex = users.findIndex(u => u.id === userData.id);
 
     if (existingUserIndex > -1) {
-        // Atualiza usuário existente
         users[existingUserIndex] = { ...users[existingUserIndex], ...userData };
     } else {
-        // Adiciona novo usuário
         users.push(userData);
     }
     saveToLocalStorage(USERS_KEY, users);
-    return userData; // Retorna o usuário com o ID (novo ou existente)
+    return userData;
 }
 
-// Deleta um usuário por ID
 export function deleteUser(id) {
     let users = getAllUsers();
     users = users.filter(user => user.id !== id);
     saveToLocalStorage(USERS_KEY, users);
 }
 
-// Obtém um usuário por ID
 export function getUserById(id) {
     const users = getAllUsers();
     return users.find(user => user.id === id);
 }
 
+export function updateAuthUser(userData) {
+    let users = getAllUsers();
+    const loggedUser = getLoggedUser();
+
+    if (!loggedUser || loggedUser.id !== userData.id) {
+        console.error('Erro: Tentativa de atualizar um usuário que não está logado ou ID incorreto.');
+        return false;
+    }
+
+    const userIndex = users.findIndex(u => u.id === userData.id);
+
+    if (userIndex > -1) {
+        users[userIndex] = { ...users[userIndex], ...userData };
+        saveToLocalStorage(USERS_KEY, users);
+
+        saveToLocalStorage(SESSION_KEY, {
+            id: users[userIndex].id,
+            name: users[userIndex].name,
+            email: users[userIndex].email,
+            role: users[userIndex].role,
+            city: users[userIndex].city,
+            country: users[userIndex].country
+        });
+        return true;
+    }
+    return false;
+}
+
 // --- Funções de Autenticação ---
 
-// Cadastro de usuário
 document.getElementById('registerForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
     
-    const userId = document.getElementById('userId')?.value; // Pode ser vazio para novo cadastro
+    const userId = document.getElementById('userId')?.value;
     const name = document.getElementById('name').value;
     const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+    const personalPassword = document.getElementById('password').value; // Senha pessoal
     const city = document.getElementById('city')?.value || '';
     const country = document.getElementById('country')?.value || '';
     const role = document.getElementById('role')?.value || 'Usuário Padrão';
+    
+    // Captura a senha universal do administrador, se o papel for Administrador
+    let adminUniversalPassword = '';
+    if (role === 'Administrador') {
+        adminUniversalPassword = document.getElementById('adminUniversalPassword').value;
+    }
 
     const users = getAllUsers();
 
-    // Verifica se já existe usuário com o mesmo e-mail (exceto para o próprio usuário em edição)
     const alreadyExists = users.some(u => u.email === email && (!userId || u.id !== parseInt(userId)));
     if (alreadyExists) {
         showModalMessage('Este e-mail já está cadastrado para outro usuário!');
         return;
     }
 
+    // --- Lógica de Validação de Senhas ---
+    // 1. Validação da senha pessoal
+    if (!personalPassword && !userId) { // Apenas para novos cadastros, a senha pessoal é obrigatória
+        showModalMessage('Por favor, digite uma senha pessoal.');
+        return;
+    }
+
+    // 2. Validação da senha universal do administrador, se aplicável
+    if (role === 'Administrador') {
+        if (adminUniversalPassword !== '0000') {
+            showModalMessage('Para se registrar como Administrador, a Senha Universal do Administrador deve ser "0000".');
+            return;
+        }
+        // Se a senha universal está correta, a senha armazenada para o admin será a senha pessoal
+        // No login, ele só precisará da senha pessoal (ou seja, a senha universal é apenas para registro)
+    } else {
+        // Se não for administrador, garante que a senha universal não foi preenchida erroneamente
+        if (adminUniversalPassword) {
+            showModalMessage('A Senha Universal do Administrador deve ser preenchida apenas para usuários com papel de Administrador.');
+            return;
+        }
+    }
+    // --- Fim da Lógica de Validação de Senhas ---
+
     const userData = { 
-        id: userId ? parseInt(userId) : null, // ID será null para novos, ou o ID existente para edição
-        name, email, password, city, country, role 
+        id: userId ? parseInt(userId) : null,
+        name,
+        email,
+        password: personalPassword, // A senha armazenada será sempre a senha pessoal
+        city,
+        country,
+        role
     };
 
-    const savedUser = addOrUpdateUser(userData); // Usa a nova função de adição/atualização
+    const savedUser = addOrUpdateUser(userData);
 
-    // Se for um novo cadastro, loga o usuário automaticamente
-    if (!userId) {
-        saveToLocalStorage(SESSION_KEY, { id: savedUser.id, name: savedUser.name, email: savedUser.email, role: savedUser.role });
-        showModalMessage('Cadastro realizado com sucesso! Você será redirecionado.', () => {
-            window.location.href = 'profile.html'; // Redireciona para o perfil após o cadastro
+    if (!userId) { // Novo cadastro
+        saveToLocalStorage(SESSION_KEY, { 
+            id: savedUser.id, 
+            name: savedUser.name, 
+            email: savedUser.email, 
+            role: savedUser.role,
+            city: savedUser.city,
+            country: savedUser.country
         });
-    } else {
-        // Se for edição, apenas informa e volta para a listagem
+        showModalMessage('Cadastro realizado com sucesso! Você será redirecionado.', () => {
+            window.location.href = 'profile.html';
+        });
+    } else { // Edição de usuário
         showModalMessage('Dados do usuário atualizados com sucesso!', () => {
-            window.location.href = 'listing.html'; // Volta para a listagem após edição
+            window.location.href = 'listing.html';
         });
     }
 });
 
-// Login de usuário
 document.getElementById('loginForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+    const password = document.getElementById('password').value; // No login, continua usando a senha pessoal
 
     const users = getAllUsers();
+    // Apenas a senha pessoal é usada para login
     const user = users.find((u) => u.email === email && u.password === password);
 
     if (user) {
-        saveToLocalStorage(SESSION_KEY, { id: user.id, name: user.name, email: user.email, role: user.role });
-        showModalMessage('Login realizado com sucesso! Você será redirecionado.', () => {
-            window.location.href = 'profile.html'; // Redireciona para o perfil após login
+        saveToLocalStorage(SESSION_KEY, { 
+            id: user.id, 
+            name: user.name, 
+            email: user.email, 
+            role: user.role,
+            city: user.city,
+            country: user.country
+        });
+        showModalMessage(`Login realizado com sucesso! Bem-vindo(a), ${user.role}! Você será redirecionado.`, () => {
+            window.location.href = 'profile.html';
         });
     } else {
         showModalMessage('E-mail ou senha inválidos!');
     }
 });
 
-// Função para obter o usuário logado
 export function getLoggedUser() {
     return getFromLocalStorage(SESSION_KEY);
 }
 
-// Função para fazer logout
 export function logout() {
     localStorage.removeItem(SESSION_KEY);
     alert('Você foi desconectado.');
-    window.location.href = 'login.html'; // Redireciona para a página de login
+    window.location.href = 'login.html';
 }
 
-
-// --- Funções de Favoritos (do seu favorites.js, exportadas aqui) ---
-// Função para obter os favoritos do localStorage
+// --- Funções de Favoritos (sem alterações, mantidas para o contexto completo) ---
 export function getFavorites() {
     const saved = localStorage.getItem(FAVORITES_KEY);
     return saved ? JSON.parse(saved) : { teams: [], players: [] };
 }
 
-// Função para salvar os favoritos no localStorage
 export function saveFavorites(favorites) {
     localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
     window.dispatchEvent(new CustomEvent(FAVORITES_CHANGED_EVENT, {
@@ -149,15 +210,13 @@ export function saveFavorites(favorites) {
     }));
 }
 
-// Verifica se um item é favorito
 export function isFavorite(type, item) {
     if (!item || !item.id) return false;
     const favorites = getFavorites();
-    const id = Number(item.id); // Garante que o ID seja número
+    const id = Number(item.id);
     return favorites[type]?.some(fav => Number(fav.id) === id);
 }
 
-// Adiciona/remover favorito
 export function saveToFavorites(type, item) {
     try {
         let itemData = item;
@@ -165,7 +224,7 @@ export function saveToFavorites(type, item) {
             itemData = JSON.parse(item);
         }
 
-        const id = Number(itemData.id); // Garante que o ID seja número
+        const id = Number(itemData.id);
         const favorites = getFavorites();
 
         if (!favorites[type]) {
@@ -175,7 +234,6 @@ export function saveToFavorites(type, item) {
         const index = favorites[type].findIndex(fav => Number(fav.id) === id);
 
         if (index === -1) {
-            // Adicionar
             const simplifiedData = {
                 id,
                 name: itemData.name,
@@ -195,7 +253,6 @@ export function saveToFavorites(type, item) {
             favorites[type].push(simplifiedData);
             alert(`${type === 'teams' ? 'Time' : 'Jogador'} adicionado aos favoritos!`);
         } else {
-            // Remover
             favorites[type].splice(index, 1);
             alert(`${type === 'teams' ? 'Time' : 'Jogador'} removido dos favoritos.`);
         }
@@ -207,7 +264,6 @@ export function saveToFavorites(type, item) {
     }
 }
 
-// Atualiza visualmente o botão de favorito
 export function updateFavoriteButton(type, itemId, isFavored) {
     const buttons = document.querySelectorAll(
         `.favorite-btn[data-type="${type}"][data-id="${Number(itemId)}"]`
@@ -219,7 +275,6 @@ export function updateFavoriteButton(type, itemId, isFavored) {
     });
 }
 
-// Sincroniza todos os botões com o estado do localStorage
 export function syncFavoriteButtons() {
     const favorites = getFavorites();
     ['teams', 'players'].forEach(type => {
@@ -232,7 +287,6 @@ export function syncFavoriteButtons() {
     });
 }
 
-// Remove favorito diretamente
 export function removeFromFavorites(type, itemId) {
     const favorites = getFavorites();
     const id = Number(itemId);
@@ -242,13 +296,11 @@ export function removeFromFavorites(type, itemId) {
         saveFavorites(favorites);
         updateFavoriteButton(type, id, false);
         
-        // Atualiza visualmente apenas se estiver na página de favoritos/perfil
         if (window.location.pathname.includes('profile.html') || window.location.pathname.includes('favorites.html')) {
             const cardToRemove = document.querySelector(`.card[data-id="${id}"]`);
             if (cardToRemove) {
                 cardToRemove.remove();
                 
-                // Verifica se a seção ficou vazia
                 const container = type === 'teams'
                     ? document.getElementById('favoriteTeams')
                     : document.getElementById('favoritePlayers');
@@ -261,41 +313,23 @@ export function removeFromFavorites(type, itemId) {
     }
 }
 
-
-// --- Funções de Modal (do seu auth.js) ---
 export function showModalMessage(message, callback) {
     const modal = document.getElementById('popupModal');
     const msg = document.getElementById('modalMessage');
     const closeBtn = document.getElementById('closeModal');
 
     msg.textContent = message;
-    modal.showModal(); // Usa showModal() para um modal nativo <dialog>
+    modal.showModal();
 
     const handler = () => {
         modal.close();
-        closeBtn.removeEventListener('click', handler); // Remove o listener para evitar múltiplos callbacks
+        closeBtn.removeEventListener('click', handler);
         if (callback) callback();
     };
 
-    // Certifica-se de que o listener não é adicionado múltiplas vezes
-    closeBtn.removeEventListener('click', handler); // Remove antes de adicionar
+    closeBtn.removeEventListener('click', handler);
     closeBtn.addEventListener('click', handler);
 }
 
-// --- Inicialização (para pages que precisam de favoritos) ---
-document.addEventListener('DOMContentLoaded', () => {
-    // Apenas sincroniza botões se existirem na página
-    if (document.querySelectorAll('.favorite-btn').length > 0) {
-        syncFavoriteButtons();
-    }
-    // Evento global para reagir a mudanças de favoritos (ex: outra aba)
-    window.addEventListener('storage', (e) => {
-        if (e.key === FAVORITES_KEY) {
-            syncFavoriteButtons();
-        }
-    });
-});
-
-// Tornar funções globais para acesso direto no HTML (onclick)
 window.saveToFavorites = saveToFavorites;
 window.removeFromFavorites = removeFromFavorites;
