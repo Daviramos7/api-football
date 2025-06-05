@@ -12,9 +12,9 @@
         <nav>
             <ul>
                 <li><a href="main.html">Página Principal</a></li>
-                <li><a href="listing.html">Listagem de Usuários</a></li>
+                <li><a href="search.html">Buscar</a></li>
+                <li><a href="favorites.html">Favoritos</a></li>
                 <li><a href="profile.html" class="active">Perfil</a></li>
-                <li><a href="registre.html">Cadastro de Usuário</a></li>
             </ul>
         </nav>
     </header>
@@ -44,27 +44,29 @@
                     <label for="profileCountry">País:</label>
                     <input type="text" id="profileCountry" name="profileCountry">
                 </div>
-                 <div class="form-group">
+                <div class="form-group">
                     <label for="profileRole">Papel:</label>
                     <input type="text" id="profileRole" name="profileRole" disabled> 
                 </div>
                 <button type="submit" class="btn primary-btn">Salvar Alterações</button>
             </form>
-            <button id="logout-btn" class="btn primary-btn" style="background-color: var(--accent); margin-top: 15px;">Logout</button>
-        </section>
+            <button id="logout-btn" class="btn logout-button">Logout</button> </section>
 
         <section id="favorite-teams-section">
             <h2>Meus Times Favoritos</h2>
-            <div id="favoriteTeams" class="cards-container">
-                </div>
+            <div id="favoriteTeams" class="favorites-container"> </div>
         </section>
 
         <section id="favorite-players-section">
             <h2>Meus Jogadores Favoritos</h2>
-            <div id="favoritePlayers" class="cards-container">
-                </div>
+            <div id="favoritePlayers" class="favorites-container"> </div>
         </section>
     </main>
+
+    <dialog id="popupModal">
+        <p id="modalMessage"></p>
+        <button id="closeModal">Fechar</button>
+    </dialog>
 
     <footer>
         <p>&copy; 2025 API Football</p>
@@ -72,5 +74,5 @@
 
     <script type="module" src="assets/js/auth.js"></script>
     <script type="module" src="assets/js/profile.js"></script>
-    </body>
+</body>
 </html>

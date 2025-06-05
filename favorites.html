@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Favoritos</title>
     <link rel="stylesheet" href="assets/css/global.css">
-    <link rel="stylesheet" href="assets/css/favorites.css">
 </head>
 <body>
     <header>
@@ -14,28 +13,34 @@
             <ul>
                 <li><a href="main.html">Página Principal</a></li>
                 <li><a href="search.html">Buscar</a></li>
-                <li><a href="favorites.html">Favoritos</a></li>
+                <li><a href="favorites.html" class="active">Favoritos</a></li>
                 <li><a href="profile.html">Perfil</a></li>
             </ul>
         </nav>
     </header>
 
-    <main>
-        <section>
+    <main class="container"> <section>
             <h2>Times Favoritos</h2>
-            <div id="favoriteTeams" class="favorites-container"></div>
+            <div id="favoriteTeams" class="favorites-container">
+                </div>
         </section>
 
         <section>
             <h2>Jogadores Favoritos</h2>
-            <div id="favoritePlayers" class="favorites-container"></div>
+            <div id="favoritePlayers" class="favorites-container">
+                </div>
         </section>
     </main>
 
+    <dialog id="popupModal">
+        <p id="modalMessage"></p>
+        <button id="closeModal">Fechar</button>
+    </dialog>
+    
     <footer>
         <p>&copy; 2025 API Football</p>
     </footer>
 
-    <script src="assets/js/favorites.js" type="module"></script>
+    <script src="assets/js/favorites-page.js" type="module"></script> 
 </body>
 </html>

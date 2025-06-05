@@ -3,8 +3,7 @@
 // Chaves para localStorage
 const USERS_KEY = 'users';
 const SESSION_KEY = 'session';
-const FAVORITES_KEY = 'footballFavorites';
-const FAVORITES_CHANGED_EVENT = 'favoritesChanged';
+// FAVORITES_KEY e FAVORITES_CHANGED_EVENT movidos para favorites.js
 
 // --- Funções de Utilitários de LocalStorage ---
 function saveToLocalStorage(key, value) {
@@ -32,12 +31,18 @@ export function addOrUpdateUser(userData) {
     const existingUserIndex = users.findIndex(u => u.id === userData.id);
 
     if (existingUserIndex > -1) {
-        users[existingUserIndex] = { ...users[existingUserIndex], ...userData };
+        // Preserva a senha se não for fornecida uma nova na atualização
+        const currentUser = users[existingUserIndex];
+        users[existingUserIndex] = { 
+            ...currentUser, 
+            ...userData,
+            password: userData.password || currentUser.password // Mantém senha antiga se a nova for vazia/null
+        };
     } else {
         users.push(userData);
     }
     saveToLocalStorage(USERS_KEY, users);
-    return userData;
+    return users.find(u => u.id === userData.id); // Retorna o usuário salvo/atualizado
 }
 
 export function deleteUser(id) {
@@ -51,7 +56,7 @@ export function getUserById(id) {
     return users.find(user => user.id === id);
 }
 
-export function updateAuthUser(userData) {
+export function updateAuthUser(userData) { // Usado para atualizar o próprio perfil logado
     let users = getAllUsers();
     const loggedUser = getLoggedUser();
 
@@ -63,39 +68,47 @@ export function updateAuthUser(userData) {
     const userIndex = users.findIndex(u => u.id === userData.id);
 
     if (userIndex > -1) {
-        users[userIndex] = { ...users[userIndex], ...userData };
+        users[userIndex] = { 
+            ...users[userIndex], 
+            ...userData,
+            password: userData.password || users[userIndex].password // Mantém senha antiga se a nova for vazia
+        };
         saveToLocalStorage(USERS_KEY, users);
 
+        // Atualiza a sessão com os novos dados (exceto senha)
         saveToLocalStorage(SESSION_KEY, {
             id: users[userIndex].id,
             name: users[userIndex].name,
             email: users[userIndex].email,
             role: users[userIndex].role,
-            city: users[userIndex].city,
-            country: users[userIndex].country
+            city: users[userIndex].city, // Adicionado de volta, se presente
+            country: users[userIndex].country // Adicionado de volta, se presente
         });
         return true;
     }
     return false;
 }
 
+
 // --- Funções de Autenticação ---
 
 document.getElementById('registerForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
     
-    const userId = document.getElementById('userId')?.value;
+    const userIdField = document.getElementById('userId');
+    const userId = userIdField ? userIdField.value : null;
     const name = document.getElementById('name').value;
     const email = document.getElementById('email').value;
-    const personalPassword = document.getElementById('password').value; // Senha pessoal
+    const personalPasswordInput = document.getElementById('password');
+    const personalPassword = personalPasswordInput.value;
     const city = document.getElementById('city')?.value || '';
     const country = document.getElementById('country')?.value || '';
     const role = document.getElementById('role')?.value || 'Usuário Padrão';
     
-    // Captura a senha universal do administrador, se o papel for Administrador
     let adminUniversalPassword = '';
     if (role === 'Administrador') {
-        adminUniversalPassword = document.getElementById('adminUniversalPassword').value;
+        const adminPassInput = document.getElementById('adminUniversalPassword');
+        if (adminPassInput) adminUniversalPassword = adminPassInput.value;
     }
 
     const users = getAllUsers();
@@ -105,36 +118,43 @@ document.getElementById('registerForm')?.addEventListener('submit', (e) => {
         showModalMessage('Este e-mail já está cadastrado para outro usuário!');
         return;
     }
+    
+    let passwordToSave = personalPassword;
 
-    // --- Lógica de Validação de Senhas ---
-    // 1. Validação da senha pessoal
-    if (!personalPassword && !userId) { // Apenas para novos cadastros, a senha pessoal é obrigatória
-        showModalMessage('Por favor, digite uma senha pessoal.');
-        return;
-    }
-
-    // 2. Validação da senha universal do administrador, se aplicável
-    if (role === 'Administrador') {
-        if (adminUniversalPassword !== '0000') {
-            showModalMessage('Para se registrar como Administrador, a Senha Universal do Administrador deve ser "0000".');
+    if (userId) { // Modo Edição
+        const existingUser = users.find(u => u.id === parseInt(userId));
+        if (personalPassword) {
+            passwordToSave = personalPassword;
+        } else {
+            passwordToSave = existingUser.password; // Mantém a senha antiga se o campo estiver vazio
+        }
+        // Validação da senha universal do admin SÓ se o papel for admin E uma nova senha universal for digitada OU se for um novo admin
+         if (role === 'Administrador' && document.getElementById('adminUniversalPasswordGroup').style.display === 'block' && adminUniversalPassword !== '0000') {
+            showModalMessage('Para definir como Administrador, a Senha Universal do Administrador deve ser "0000".');
             return;
         }
-        // Se a senha universal está correta, a senha armazenada para o admin será a senha pessoal
-        // No login, ele só precisará da senha pessoal (ou seja, a senha universal é apenas para registro)
-    } else {
-        // Se não for administrador, garante que a senha universal não foi preenchida erroneamente
-        if (adminUniversalPassword) {
-            showModalMessage('A Senha Universal do Administrador deve ser preenchida apenas para usuários com papel de Administrador.');
+    } else { // Modo Cadastro Novo
+        if (!personalPassword) {
+            showModalMessage('Por favor, digite uma senha pessoal.');
             return;
         }
+        if (role === 'Administrador') {
+            if (adminUniversalPassword !== '0000') {
+                showModalMessage('Para se registrar como Administrador, a Senha Universal do Administrador deve ser "0000".');
+                return;
+            }
+        } else if (adminUniversalPassword) {
+             showModalMessage('A Senha Universal do Administrador só é relevante para o papel de Administrador.');
+             return;
+        }
     }
-    // --- Fim da Lógica de Validação de Senhas ---
+
 
     const userData = { 
         id: userId ? parseInt(userId) : null,
         name,
         email,
-        password: personalPassword, // A senha armazenada será sempre a senha pessoal
+        password: passwordToSave, 
         city,
         country,
         role
@@ -142,7 +162,7 @@ document.getElementById('registerForm')?.addEventListener('submit', (e) => {
 
     const savedUser = addOrUpdateUser(userData);
 
-    if (!userId) { // Novo cadastro
+    if (!userId) { 
         saveToLocalStorage(SESSION_KEY, { 
             id: savedUser.id, 
             name: savedUser.name, 
@@ -154,7 +174,19 @@ document.getElementById('registerForm')?.addEventListener('submit', (e) => {
         showModalMessage('Cadastro realizado com sucesso! Você será redirecionado.', () => {
             window.location.href = 'profile.html';
         });
-    } else { // Edição de usuário
+    } else { 
+        // Se o admin editou outro usuário, apenas atualiza. Se editou a si mesmo, atualiza a sessão.
+        const loggedUser = getLoggedUser();
+        if (loggedUser && loggedUser.id === savedUser.id) {
+            saveToLocalStorage(SESSION_KEY, {
+                 id: savedUser.id, 
+                 name: savedUser.name, 
+                 email: savedUser.email, 
+                 role: savedUser.role,
+                 city: savedUser.city,
+                 country: savedUser.country
+            });
+        }
         showModalMessage('Dados do usuário atualizados com sucesso!', () => {
             window.location.href = 'listing.html';
         });
@@ -164,10 +196,9 @@ document.getElementById('registerForm')?.addEventListener('submit', (e) => {
 document.getElementById('loginForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value; // No login, continua usando a senha pessoal
+    const password = document.getElementById('password').value;
 
     const users = getAllUsers();
-    // Apenas a senha pessoal é usada para login
     const user = users.find((u) => u.email === email && u.password === password);
 
     if (user) {
@@ -179,8 +210,8 @@ document.getElementById('loginForm')?.addEventListener('submit', (e) => {
             city: user.city,
             country: user.country
         });
-        showModalMessage(`Login realizado com sucesso! Bem-vindo(a), ${user.role}! Você será redirecionado.`, () => {
-            window.location.href = 'profile.html';
+        showModalMessage(`Login realizado com sucesso! Bem-vindo(a), ${user.name}! Você será redirecionado.`, () => {
+            window.location.href = 'main.html'; // Redireciona para main.html após login
         });
     } else {
         showModalMessage('E-mail ou senha inválidos!');
@@ -193,124 +224,10 @@ export function getLoggedUser() {
 
 export function logout() {
     localStorage.removeItem(SESSION_KEY);
-    alert('Você foi desconectado.');
-    window.location.href = 'login.html';
-}
-
-// --- Funções de Favoritos (sem alterações, mantidas para o contexto completo) ---
-export function getFavorites() {
-    const saved = localStorage.getItem(FAVORITES_KEY);
-    return saved ? JSON.parse(saved) : { teams: [], players: [] };
-}
-
-export function saveFavorites(favorites) {
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-    window.dispatchEvent(new CustomEvent(FAVORITES_CHANGED_EVENT, {
-        detail: { favorites }
-    }));
-}
-
-export function isFavorite(type, item) {
-    if (!item || !item.id) return false;
-    const favorites = getFavorites();
-    const id = Number(item.id);
-    return favorites[type]?.some(fav => Number(fav.id) === id);
-}
-
-export function saveToFavorites(type, item) {
-    try {
-        let itemData = item;
-        if (typeof item === 'string') {
-            itemData = JSON.parse(item);
-        }
-
-        const id = Number(itemData.id);
-        const favorites = getFavorites();
-
-        if (!favorites[type]) {
-            favorites[type] = [];
-        }
-
-        const index = favorites[type].findIndex(fav => Number(fav.id) === id);
-
-        if (index === -1) {
-            const simplifiedData = {
-                id,
-                name: itemData.name,
-                photo: itemData.photo || 'assets/img/player-placeholder.png',
-                age: itemData.age || 'Não informada',
-                nationality: itemData.nationality === 'Brazil' ? 'Brasil' : itemData.nationality || 'Não informada',
-                team: {
-                    name: itemData.team?.name || 'Não informado',
-                    logo: itemData.team?.logo || 'assets/img/team-placeholder.png'
-                },
-                leagues: itemData.leagues || ['Não informado'],
-                logo: itemData.logo || 'assets/img/team-placeholder.png',
-                city: itemData.city || 'Brasil',
-                country: itemData.country === 'Brazil' ? 'Brasil' : itemData.country || 'Brasil'
-            };
-            
-            favorites[type].push(simplifiedData);
-            alert(`${type === 'teams' ? 'Time' : 'Jogador'} adicionado aos favoritos!`);
-        } else {
-            favorites[type].splice(index, 1);
-            alert(`${type === 'teams' ? 'Time' : 'Jogador'} removido dos favoritos.`);
-        }
-
-        saveFavorites(favorites);
-        updateFavoriteButton(type, id, index === -1);
-    } catch (error) {
-        console.error('Erro ao salvar favorito:', error);
-    }
-}
-
-export function updateFavoriteButton(type, itemId, isFavored) {
-    const buttons = document.querySelectorAll(
-        `.favorite-btn[data-type="${type}"][data-id="${Number(itemId)}"]`
-    );
-    
-    buttons.forEach(button => {
-        button.classList.toggle('favored', isFavored);
-        button.textContent = isFavored ? 'Remover Favorito' : 'Adicionar Favorito';
+    // Não limpa os favoritos ao deslogar
+    showModalMessage('Você foi desconectado.', () => {
+         window.location.href = 'login.html';
     });
-}
-
-export function syncFavoriteButtons() {
-    const favorites = getFavorites();
-    ['teams', 'players'].forEach(type => {
-        document.querySelectorAll(`.favorite-btn[data-type="${type}"]`).forEach(button => {
-            const id = Number(button.getAttribute('data-id'));
-            const isFav = favorites[type]?.some(fav => Number(fav.id) === id);
-            button.classList.toggle('favored', isFav);
-            button.textContent = isFav ? 'Remover Favorito' : 'Adicionar Favorito';
-        });
-    });
-}
-
-export function removeFromFavorites(type, itemId) {
-    const favorites = getFavorites();
-    const id = Number(itemId);
-    
-    if (favorites[type]) {
-        favorites[type] = favorites[type].filter(fav => Number(fav.id) === id ? false : true);
-        saveFavorites(favorites);
-        updateFavoriteButton(type, id, false);
-        
-        if (window.location.pathname.includes('profile.html') || window.location.pathname.includes('favorites.html')) {
-            const cardToRemove = document.querySelector(`.card[data-id="${id}"]`);
-            if (cardToRemove) {
-                cardToRemove.remove();
-                
-                const container = type === 'teams'
-                    ? document.getElementById('favoriteTeams')
-                    : document.getElementById('favoritePlayers');
-                
-                if (container && container.children.length === 0) {
-                    container.innerHTML = `<p class="no-favorites">Nenhum ${type === 'teams' ? 'time' : 'jogador'} favorito adicionado.</p>`;
-                }
-            }
-        }
-    }
 }
 
 export function showModalMessage(message, callback) {
@@ -318,18 +235,31 @@ export function showModalMessage(message, callback) {
     const msg = document.getElementById('modalMessage');
     const closeBtn = document.getElementById('closeModal');
 
+    if (!modal || !msg || !closeBtn) {
+        console.warn('Elementos do modal não encontrados. Exibindo alert padrão.');
+        alert(message);
+        if (callback) callback();
+        return;
+    }
+
     msg.textContent = message;
-    modal.showModal();
+    
+    // Garante que o listener antigo seja removido antes de adicionar um novo
+    const newCloseBtn = closeBtn.cloneNode(true);
+    closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
 
     const handler = () => {
         modal.close();
-        closeBtn.removeEventListener('click', handler);
         if (callback) callback();
     };
 
-    closeBtn.removeEventListener('click', handler);
-    closeBtn.addEventListener('click', handler);
+    newCloseBtn.addEventListener('click', handler, { once: true }); // { once: true } para auto-remover após clique
+    
+    if (typeof modal.showModal === "function") {
+        modal.showModal();
+    } else {
+        console.warn("Browser não suporta dialog.showModal(). Exibindo alert.");
+        alert(message);
+        if (callback) callback();
+    }
 }
-
-window.saveToFavorites = saveToFavorites;
-window.removeFromFavorites = removeFromFavorites;
