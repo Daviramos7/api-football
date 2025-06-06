@@ -2,17 +2,17 @@
 import { fetchFromAPI } from './api.js';
 import {
     getFavorites,
-    FAVORITES_KEY,
+    FAVORITES_KEY_FOR_EVENT,
     FAVORITES_CHANGED_EVENT
 } from './favorites.js';
-// import { showModalMessage } from './auth.js'; // Descomente se for usar modais nesta página
 
+// Constante original com todas as ligas para referência futura
 const BRAZILIAN_LEAGUES = [
     { id: 71, name: 'Brasileirão Série A', season: 2025 },
     { id: 72, name: 'Brasileirão Série B', season: 2025 },
     { id: 75, name: 'Brasileirão Série C', season: 2025 },
-    { id: 76, name: 'Brasileirão Série D', season: 2025 },
-    { id: 73, name: 'Copa do Brasil', season: 2025 } // Mantida aqui para referência, mas filtrada do select
+    { id: 76, name: 'Brasileirão Série D', season: 2025 }, 
+    { id: 73, name: 'Copa do Brasil', season: 2025 }
 ];
 
 // DOM elements
@@ -22,10 +22,10 @@ const leagueSelect = document.getElementById('leagueSelect');
 const groupSelect = document.getElementById('groupSelect');
 const standingsList = document.getElementById('standingsList');
 
-// --- Funções de Renderização de Favoritos (Resumidos na Página Principal) ---
-// (Como na mensagem #95 - sem links para detalhes)
+// --- Renderiza a seção de favoritos resumidos ---
 function renderMainPageFavorites() {
-    const fav = getFavorites();
+    const fav = getFavorites(); // Pega os favoritos do usuário logado
+
     if (favoriteTeamsContainer) {
         let teamsHtml = '<h3>Times Favoritos</h3>';
         if (fav.teams && fav.teams.length > 0) {
@@ -57,8 +57,7 @@ function renderMainPageFavorites() {
     }
 }
 
-// --- Funções de Carregamento de Classificação ---
-// (Como na mensagem #95 - com lógica de grupos para Série D e sem links para detalhes de time)
+// --- Carrega a tabela de classificação ---
 async function loadStandings(leagueId, group = 0) {
     if (!standingsList || !leagueId) {
         if (standingsList) standingsList.innerHTML = '<p class="no-results-message">Selecione uma liga para ver a classificação.</p>';
@@ -70,8 +69,9 @@ async function loadStandings(leagueId, group = 0) {
     const leagueConfig = BRAZILIAN_LEAGUES.find(l => l.id === parseInt(leagueId));
     const season = leagueConfig ? leagueConfig.season : new Date().getFullYear();
 
-    if (parseInt(leagueId) === 73) {
-        standingsList.innerHTML = '<p class="no-results-message">Copa do Brasil tem formato eliminatório, sem tabela de classificação por pontos corridos.</p>';
+    // Esta verificação é uma salvaguarda, mas a opção já foi removida do select
+    if (parseInt(leagueId) === 73) { 
+        standingsList.innerHTML = '<p class="no-results-message">Copa do Brasil tem formato eliminatório, sem tabela de classificação.</p>';
         if (groupSelect) groupSelect.style.display = 'none';
         return;
     }
@@ -102,19 +102,10 @@ async function loadStandings(leagueId, group = 0) {
                     }).join('');
                     groupSelect.setAttribute('data-league-id', leagueId.toString());
                 }
-                
-                const currentSelectedGroup = parseInt(groupSelect.value);
-                if(group >= 0 && group < apiStandingsData.length) {
-                    groupSelect.value = group.toString(); // Garante que o grupo passado como parâmetro seja selecionado
-                    relevantStandings = apiStandingsData[group] || [];
-                } else if (currentSelectedGroup >= 0 && currentSelectedGroup < apiStandingsData.length) {
-                    relevantStandings = apiStandingsData[currentSelectedGroup] || [];
-                } else {
-                     relevantStandings = apiStandingsData[0] || []; 
-                     groupSelect.value = "0";
-                }
-            } else { 
-                 relevantStandings = apiStandingsData[0] || []; 
+                groupSelect.value = group.toString();
+                relevantStandings = apiStandingsData[group] || [];
+            } else {
+                 relevantStandings = apiStandingsData[0] || [];
             }
         } else if (isGroupedFormatFromAPI) { 
              relevantStandings = apiStandingsData[0]; 
@@ -129,7 +120,7 @@ async function loadStandings(leagueId, group = 0) {
         }
 
         if (!relevantStandings || relevantStandings.length === 0) {
-            standingsList.innerHTML = '<p class="no-results-message">Nenhuma classificação disponível para este grupo ou liga.</p>';
+            standingsList.innerHTML = '<p class="no-results-message">Nenhuma classificação disponível para este grupo.</p>';
             return;
         }
 
@@ -174,7 +165,7 @@ async function loadStandings(leagueId, group = 0) {
                  if (err.message.includes('Limite de requisições diárias atingido')) {
                     displayMessage = 'Não foi possível carregar a classificação. O limite da API foi atingido.';
                 } else if (err.message) {
-                    displayMessage = `Erro ao carregar classificação: ${err.message}.`;
+                    displayMessage = `Erro: ${err.message}`;
                 }
             }
             standingsList.innerHTML = `<p class="error-message">${displayMessage}</p>`;
@@ -185,32 +176,23 @@ async function loadStandings(leagueId, group = 0) {
 // --- Inicialização ---
 function init() {
     if (leagueSelect) {
-        const leaguesForSelect = BRAZILIAN_LEAGUES.filter(league => league.id !== 73); // Exclui Copa do Brasil
+        // Filtra para não incluir a Copa do Brasil (ID 73) no select
+        const leaguesForSelect = BRAZILIAN_LEAGUES.filter(league => league.id !== 73);
         
         leagueSelect.innerHTML = leaguesForSelect.map(league =>
             `<option value="${league.id}">${league.name}</option>`
         ).join('');
         
-        // Adiciona uma opção placeholder inicial e a seleciona
+        // Adiciona um placeholder inicial
         const placeholderOption = "<option value=\"\" disabled selected>Selecione uma liga</option>";
         leagueSelect.insertAdjacentHTML('afterbegin', placeholderOption);
-        leagueSelect.value = ""; // Garante que o placeholder esteja selecionado
+        leagueSelect.value = ""; 
 
         leagueSelect.addEventListener('change', () => {
             const selectedLeagueId = leagueSelect.value;
-            if (selectedLeagueId) { // Só carrega se uma liga real for selecionada
-                let initialGroup = 0; 
-                if (parseInt(selectedLeagueId) === 76) {
-                    // Para Série D, o groupSelect será populado em loadStandings.
-                    // Podemos carregar o grupo 0 por padrão ao selecionar Série D.
-                    if (groupSelect) groupSelect.value = "0"; // Tenta resetar visualmente o select de grupo
-                }
+            if (selectedLeagueId) {
+                let initialGroup = (parseInt(selectedLeagueId) === 76) ? 0 : 0;
                 loadStandings(selectedLeagueId, initialGroup);
-            } else {
-                // Se o placeholder "Selecione uma liga" for re-selecionado (improvável sem JS extra)
-                // ou se nenhuma liga for selecionada inicialmente.
-                if (standingsList) standingsList.innerHTML = '<p class="no-results-message">Selecione uma liga para ver a classificação.</p>';
-                if (groupSelect) groupSelect.style.display = 'none';
             }
         });
 
@@ -225,19 +207,18 @@ function init() {
 
     renderMainPageFavorites();
     
-    // NÃO carrega nenhuma classificação por padrão.
+    // NÃO carrega nenhuma classificação por padrão para economizar API.
     // Exibe mensagem inicial na área de classificação.
     if (standingsList && (!leagueSelect || !leagueSelect.value)) {
         standingsList.innerHTML = '<p class="no-results-message">Selecione uma liga para ver a classificação.</p>';
     }
-    if (groupSelect) { // Garante que o seletor de grupo esteja escondido inicialmente
+    if (groupSelect) {
         groupSelect.style.display = 'none';
     }
 
-
     window.addEventListener(FAVORITES_CHANGED_EVENT, renderMainPageFavorites);
     window.addEventListener('storage', (e) => {
-        if (e.key === FAVORITES_KEY) {
+        if (e.key === FAVORITES_KEY_FOR_EVENT) { // Usando chave de evento se for diferente
             renderMainPageFavorites();
         }
     });

@@ -1,8 +1,9 @@
 // assets/js/favorites-page.js
-import { getFavorites, removeFromFavoritesOnPage, FAVORITES_KEY, FAVORITES_CHANGED_EVENT } from './favorites.js';
+import { getFavorites, removeFromFavoritesOnPage, FAVORITES_CHANGED_EVENT } from './favorites.js';
 import { getLoggedUser, showModalMessage } from './auth.js';
 
 // Funções de renderização dos cards (sem links para detalhes)
+// Estas são idênticas às do profile.js para manter a consistência visual.
 function renderFavoritePlayerCard(player) {
     return `
     <div class="card favorite-card player-card" data-id="${player.id}" data-type="players">
@@ -26,7 +27,6 @@ function renderFavoritePlayerCard(player) {
 function renderFavoriteTeamCard(team) {
     return `
     <div class="card favorite-card team-card" data-id="${team.id}" data-type="teams">
-        
         <div class="team-header">
             <img src="${team.logo || 'assets/img/team-placeholder.png'}"
                  alt="${team.name}"
@@ -48,29 +48,17 @@ function loadAndDisplayFavoritesOnPage() {
     const playersContainer = document.getElementById('favoritePlayers');
 
     if (!teamsContainer || !playersContainer) {
-        console.error("Elementos 'favoriteTeams' ou 'favoritePlayers' não encontrados no DOM da página de favoritos.");
+        console.error("Elementos 'favoriteTeams' ou 'favoritePlayers' não encontrados no DOM.");
         return;
     }
 
     if (!loggedUser) {
         teamsContainer.innerHTML = '<p class="no-favorites">Você precisa estar <a href="login.html">logado</a> para ver seus favoritos.</p>';
         playersContainer.innerHTML = ''; 
-        
-        // Garante que o modal exista para showModalMessage (se for chamado)
-        let modal = document.getElementById('popupModal');
-        if (!modal) {
-            const mainElement = document.querySelector('main.container') || document.body; // Tenta main.container primeiro
-            if (mainElement) {
-                mainElement.insertAdjacentHTML('afterend', `
-                    <dialog id="popupModal"><p id="modalMessage"></p><button id="closeModal">Fechar</button></dialog>
-                `);
-            }
-        }
-        // showModalMessage("Você precisa estar logado para ver seus favoritos."); // Opcional, já que tem texto na página
         return;
     }
 
-    const favorites = getFavorites(); 
+    const favorites = getFavorites(); // Pega os favoritos do usuário logado
 
     if (favorites.teams && favorites.teams.length > 0) {
         teamsContainer.innerHTML = favorites.teams.map(renderFavoriteTeamCard).join('');
@@ -85,12 +73,14 @@ function loadAndDisplayFavoritesOnPage() {
     }
 }
 
+// Expõe a função de remover para ser chamada pelos botões nos cards
 window.handlePageRemoveFavorite = (type, itemId) => {
     if (confirm(`Tem certeza que deseja remover este ${type === 'teams' ? 'time' : 'jogador'} dos favoritos?`)) {
-        removeFromFavoritesOnPage(type, itemId, 'favoritesPage'); 
+        removeFromFavoritesOnPage(type, itemId, 'favoritesPage');
     }
 };
 
+// --- Inicialização e Event Listeners ---
 document.addEventListener('DOMContentLoaded', () => {
     loadAndDisplayFavoritesOnPage();
 
@@ -101,9 +91,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// Ouve por mudanças nos favoritos para manter a página sincronizada
 window.addEventListener(FAVORITES_CHANGED_EVENT, loadAndDisplayFavoritesOnPage);
 window.addEventListener('storage', (e) => {
-    if (e.key === FAVORITES_KEY) {
+    // Como os favoritos agora fazem parte do objeto de usuários,
+    // ouvimos por mudanças na chave 'users'.
+    if (e.key === 'users') {
         loadAndDisplayFavoritesOnPage();
     }
 });

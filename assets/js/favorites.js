@@ -1,76 +1,102 @@
 // assets/js/favorites.js
+import { getLoggedUser, addOrUpdateUser, getAllUsers } from './auth.js';
 
-export const FAVORITES_KEY = 'footballFavorites';
+// Este evento continua útil para atualizar a UI em tempo real
 export const FAVORITES_CHANGED_EVENT = 'favoritesChanged';
 
+// A chave 'footballFavorites' não é mais usada para salvar, mas é bom tê-la para o evento de storage
+// se você quiser que abas diferentes reajam a qualquer mudança de favoritos.
+export const FAVORITES_KEY_FOR_EVENT = 'userFavoritesUpdated';
+
+
+/**
+ * Pega os favoritos DO USUÁRIO LOGADO.
+ * @returns {{teams: Array, players: Array}} Objeto de favoritos do usuário ou um objeto vazio.
+ */
 export function getFavorites() {
-    const saved = localStorage.getItem(FAVORITES_KEY);
-    const favorites = saved ? JSON.parse(saved) : { teams: [], players: [] };
-    // console.log('DEBUG: favorites.js (getFavorites) - Favoritos carregados:', JSON.parse(JSON.stringify(favorites))); // Log verboso, descomente se necessário
-    return favorites;
+    const loggedUser = getLoggedUser();
+    if (!loggedUser) {
+        return { teams: [], players: [] }; // Nenhum usuário logado, retorna favoritos vazios.
+    }
+
+    const users = getAllUsers();
+    const currentUser = users.find(user => user.id === loggedUser.id);
+    
+    // Retorna os favoritos do usuário ou um objeto vazio se a propriedade não existir (por segurança).
+    return currentUser?.favorites || { teams: [], players: [] };
 }
 
-export function saveFavoritesStorage(favorites) {
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-    console.log('DEBUG: favorites.js (saveFavoritesStorage) - Favoritos salvos no localStorage:', JSON.parse(JSON.stringify(favorites)));
+/**
+ * Salva o objeto de favoritos para o usuário logado.
+ * @param {object} favorites - O objeto de favoritos atualizado ({ teams: [...], players: [...] }).
+ */
+function saveCurrentUserFavorites(favorites) {
+    const loggedUser = getLoggedUser();
+    if (!loggedUser) {
+        console.error("Não é possível salvar favoritos: nenhum usuário logado.");
+        return;
+    }
+
+    // Cria um objeto de dados para atualização, contendo apenas o ID e os favoritos.
+    const userDataToUpdate = {
+        id: loggedUser.id,
+        favorites: favorites
+    };
+
+    // Reutiliza a função de auth.js para encontrar o usuário e atualizar seus dados.
+    addOrUpdateUser(userDataToUpdate);
+    
+    // Dispara o evento para notificar outras partes da UI sobre a mudança.
     window.dispatchEvent(new CustomEvent(FAVORITES_CHANGED_EVENT, {
-        detail: { favorites }
+        detail: { newFavorites: favorites } // Envia os novos favoritos no evento
     }));
 }
 
+/**
+ * Verifica se um item é favorito para o usuário logado.
+ * @param {'teams'|'players'} type - O tipo de item.
+ * @param {object} item - O objeto do time ou jogador, deve conter um 'id'.
+ * @returns {boolean} - True se for favorito, false caso contrário.
+ */
 export function isFavorite(type, item) {
-    if (!item || typeof item.id === 'undefined') {
-        console.warn('DEBUG: favorites.js (isFavorite) - Item ou item.id inválido:', item);
+    const loggedUser = getLoggedUser();
+    if (!loggedUser || !item || typeof item.id === 'undefined') {
         return false;
     }
-    const favorites = getFavorites();
+
+    const favorites = getFavorites(); // Automaticamente pega os favoritos do usuário logado.
     const id = Number(item.id);
-    // console.log(`DEBUG: favorites.js (isFavorite) - Checando tipo: ${type}, ID: ${id}`); // Log verboso
     return favorites[type]?.some(fav => Number(fav.id) === id);
 }
 
-export function updateFavoriteButtonClass(type, itemId, isFavored) {
-    const buttons = document.querySelectorAll(
-        `.favorite-btn[data-type="${type}"][data-id="${Number(itemId)}"]`
-    );
-    // console.log(`DEBUG: favorites.js (updateFavoriteButtonClass) - Atualizando ${buttons.length} botões para tipo: ${type}, ID: ${itemId}, Favorecido: ${isFavored}`); // Log verboso
-    buttons.forEach(button => {
-        button.classList.toggle('favored', isFavored);
-    });
-}
-
+/**
+ * Adiciona ou remove um item dos favoritos do usuário logado.
+ * @param {'teams'|'players'} type - O tipo de item.
+ * @param {object|string} itemData - Os dados do item a ser favoritado.
+ */
 export function toggleFavorite(type, itemData) {
-    console.log(`DEBUG: favorites.js (toggleFavorite) - Chamado para tipo: ${type}, itemData recebido:`, JSON.parse(JSON.stringify(itemData)));
+    const loggedUser = getLoggedUser();
+    if (!loggedUser) {
+        alert("Você precisa estar logado para adicionar ou remover favoritos.");
+        return;
+    }
+
     try {
         let currentItemData = itemData;
         if (typeof itemData === 'string') {
-            try {
-                currentItemData = JSON.parse(itemData);
-                console.log(`DEBUG: favorites.js (toggleFavorite) - itemData (após parse string):`, JSON.parse(JSON.stringify(currentItemData)));
-            } catch (e) {
-                console.error("DEBUG: favorites.js (toggleFavorite) - Erro ao fazer parse do JSON em itemData:", itemData, e);
-                alert('Ocorreu um erro ao processar o favorito (parse JSON).');
-                return;
-            }
+            try { currentItemData = JSON.parse(itemData); } 
+            catch (e) { console.error("Erro ao fazer parse do JSON:", e); return; }
         }
 
         if (!currentItemData || typeof currentItemData.id === 'undefined') {
-            console.error('DEBUG: favorites.js (toggleFavorite) - Dados do item inválidos para favoritar (ID ausente ou item nulo):', currentItemData);
-            alert('Não foi possível adicionar/remover favorito: dados inválidos.');
-            return;
+            alert('Não foi possível favoritar: dados inválidos.'); return;
         }
 
         const id = Number(currentItemData.id);
-        const itemName = currentItemData.name || 'Item desconhecido'; // Para logs e alertas
-        console.log(`DEBUG: favorites.js (toggleFavorite) - Processando item: "${itemName}", ID original: ${currentItemData.id}, ID convertido: ${id}`);
+        const itemName = currentItemData.name || 'Item';
+        if (isNaN(id)) { alert(`Erro: ID inválido para "${itemName}".`); return; }
 
-        if (isNaN(id)) {
-            console.error(`DEBUG: favorites.js (toggleFavorite) - ID inválido (NaN) para item: "${itemName}" após conversão. ID original: ${currentItemData.id}`);
-            alert(`Erro: ID inválido para ${type === 'teams' ? 'time' : 'jogador'} "${itemName}".`);
-            return;
-        }
-
-        const favorites = getFavorites();
+        const favorites = getFavorites(); // Pega os favoritos DO USUÁRIO ATUAL
 
         if (!favorites[type]) {
             favorites[type] = [];
@@ -78,45 +104,67 @@ export function toggleFavorite(type, itemData) {
 
         const index = favorites[type].findIndex(fav => Number(fav.id) === id);
 
-        if (index === -1) { // Não é favorito, adicionar
+        if (index === -1) { // Adicionar
             const simplifiedData = {
-                id, // Usa o ID convertido e validado
-                name: currentItemData.name,
+                id, name: currentItemData.name,
                 photo: currentItemData.photo || (type === 'players' ? 'assets/img/player-placeholder.png' : null),
                 logo: currentItemData.logo || (type === 'teams' ? 'assets/img/team-placeholder.png' : null),
                 age: currentItemData.age || 'Não informada',
-                nationality: currentItemData.nationality === 'Brazil' ? 'Brasil' : currentItemData.nationality || 'Não informada',
-                team: type === 'players' ? { 
-                    id: currentItemData.team?.id, // Adicionar ID do time do jogador se disponível
-                    name: currentItemData.team?.name || 'Não informado', 
-                    logo: currentItemData.team?.logo || 'assets/img/team-placeholder.png' 
-                } : null,
+                nationality: currentItemData.nationality || 'Não informada',
+                team: type === 'players' ? { id: currentItemData.team?.id, name: currentItemData.team?.name || 'Não informado', logo: currentItemData.team?.logo || 'assets/img/team-placeholder.png' } : null,
                 leagues: currentItemData.leagues || ['Não informado'],
                 city: type === 'teams' ? (currentItemData.city || 'Brasil') : null,
-                country: type === 'teams' ? (currentItemData.country === 'Brazil' ? 'Brasil' : currentItemData.country || 'Brasil') : null,
-                founded: type === 'teams' ? currentItemData.founded : null,
-                venue: type === 'teams' ? currentItemData.venue : null
+                country: type === 'teams' ? (currentItemData.country || 'Brasil') : null
             };
-            console.log(`DEBUG: favorites.js (toggleFavorite) - Adicionando "${simplifiedData.name}" (ID: ${id}) aos favoritos.`);
             favorites[type].push(simplifiedData);
             alert(`${type === 'teams' ? 'Time' : 'Jogador'} "${simplifiedData.name}" adicionado aos favoritos!`);
             updateFavoriteButtonClass(type, id, true);
-        } else { // Já é favorito, remover
-            console.log(`DEBUG: favorites.js (toggleFavorite) - Removendo "${itemName}" (ID: ${id}) dos favoritos.`);
+        } else { // Remover
             favorites[type].splice(index, 1);
             alert(`${type === 'teams' ? 'Time' : 'Jogador'} "${itemName}" removido dos favoritos.`);
             updateFavoriteButtonClass(type, id, false);
         }
 
-        saveFavoritesStorage(favorites);
+        saveCurrentUserFavorites(favorites); // Salva os favoritos NO PERFIL DO USUÁRIO
     } catch (error) {
-        console.error('DEBUG: favorites.js (toggleFavorite) - Erro:', error);
+        console.error('Erro em toggleFavorite:', error);
         alert('Ocorreu um erro ao atualizar os favoritos.');
     }
 }
 
+/**
+ * Remove um item dos favoritos e atualiza a UI da página (usado em profile.html e favorites.html).
+ */
+export function removeFromFavoritesOnPage(type, itemId, pageContext = null) {
+    const loggedUser = getLoggedUser();
+    if (!loggedUser) return;
+
+    const id = Number(itemId);
+    const favorites = getFavorites();
+    const itemToRemove = favorites[type]?.find(fav => Number(fav.id) === id);
+    
+    if (itemToRemove) {
+        const itemName = itemToRemove.name || 'Item';
+        favorites[type] = favorites[type].filter(fav => Number(fav.id) !== id);
+        
+        saveCurrentUserFavorites(favorites);
+        alert(`${type === 'teams' ? 'Time' : 'Jogador'} "${itemName}" removido dos favoritos.`);
+        
+        if (pageContext === 'favoritesPage' || pageContext === 'profilePage') {
+            const cardToRemove = document.querySelector(`.card[data-id="${id}"][data-type="${type}"]`);
+            if (cardToRemove) {
+                cardToRemove.remove();
+                const container = document.getElementById(type === 'teams' ? 'favoriteTeams' : 'favoritePlayers');
+                if (container && container.children.length === 0) {
+                    container.innerHTML = `<p class="no-favorites">Nenhum ${type === 'teams' ? 'time' : 'jogador'} favorito adicionado.</p>`;
+                }
+            }
+        }
+    }
+}
+
+// Funções de sincronização de botões permanecem, mas agora usam getFavorites() que é sensível ao usuário.
 export function syncFavoriteButtons() {
-    // console.log('DEBUG: favorites.js (syncFavoriteButtons) - Sincronizando botões...'); // Log verboso
     const favorites = getFavorites();
     ['teams', 'players'].forEach(type => {
         document.querySelectorAll(`.favorite-btn[data-type="${type}"]`).forEach(button => {
@@ -128,34 +176,11 @@ export function syncFavoriteButtons() {
     });
 }
 
-export function removeFromFavoritesOnPage(type, itemId, pageContext = null) {
-    console.log(`DEBUG: favorites.js (removeFromFavoritesOnPage) - Removendo tipo: ${type}, ID: ${itemId}, Contexto: ${pageContext}`);
-    const favorites = getFavorites();
-    const id = Number(itemId);
-    
-    if (favorites[type]) {
-        const itemToRemove = favorites[type].find(fav => Number(fav.id) === id);
-        const itemName = itemToRemove?.name || 'Item';
-        
-        favorites[type] = favorites[type].filter(fav => Number(fav.id) !== id);
-        saveFavoritesStorage(favorites);
-        updateFavoriteButtonClass(type, id, false); 
-        alert(`${type === 'teams' ? 'Time' : 'Jogador'} "${itemName}" removido dos favoritos.`);
-        
-        if (pageContext === 'favoritesPage' || pageContext === 'profilePage') {
-            // ... (lógica de remoção do DOM como antes) ...
-            const cardToRemove = document.querySelector(
-                `.card[data-id="${id}"][data-type="${type}"], .favorite-card[data-id="${id}"][data-type="${type}"]`
-            ) || document.querySelector(`.card[data-id="${id}"], .favorite-card[data-id="${id}"]`);
-
-            if (cardToRemove) {
-                cardToRemove.remove();
-                let containerId = type === 'teams' ? 'favoriteTeams' : 'favoritePlayers';
-                const container = document.getElementById(containerId);
-                if (container && container.children.length === 0) {
-                    container.innerHTML = `<p class="no-favorites">Nenhum ${type === 'teams' ? 'time' : 'jogador'} favorito adicionado.</p>`;
-                }
-            }
-        }
-    }
+export function updateFavoriteButtonClass(type, itemId, isFavored) {
+    const buttons = document.querySelectorAll(
+        `.favorite-btn[data-type="${type}"][data-id="${Number(itemId)}"]`
+    );
+    buttons.forEach(button => {
+        button.classList.toggle('favored', isFavored);
+    });
 }

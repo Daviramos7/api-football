@@ -1,9 +1,7 @@
 // assets/js/auth.js
 
-// Chaves para localStorage
 const USERS_KEY = 'users';
 const SESSION_KEY = 'session';
-// FAVORITES_KEY e FAVORITES_CHANGED_EVENT movidos para favorites.js
 
 // --- Funções de Utilitários de LocalStorage ---
 function saveToLocalStorage(key, value) {
@@ -15,8 +13,7 @@ function getFromLocalStorage(key) {
     return saved ? JSON.parse(saved) : null;
 }
 
-// --- Funções de Usuários ---
-
+// --- Funções de Gerenciamento de Usuários ---
 export function getAllUsers() {
     return getFromLocalStorage(USERS_KEY) || [];
 }
@@ -24,25 +21,38 @@ export function getAllUsers() {
 export function addOrUpdateUser(userData) {
     let users = getAllUsers();
     
-    if (!userData.id) {
+    if (!userData.id) { // Criando um NOVO usuário
         userData.id = users.length > 0 ? Math.max(...users.map(u => u.id || 0)) + 1 : 1;
-    }
-
-    const existingUserIndex = users.findIndex(u => u.id === userData.id);
-
-    if (existingUserIndex > -1) {
-        // Preserva a senha se não for fornecida uma nova na atualização
-        const currentUser = users[existingUserIndex];
-        users[existingUserIndex] = { 
-            ...currentUser, 
-            ...userData,
-            password: userData.password || currentUser.password // Mantém senha antiga se a nova for vazia/null
-        };
-    } else {
+        // MUDANÇA IMPORTANTE: Adiciona um campo de favoritos para novos usuários
+        userData.favorites = { teams: [], players: [] }; 
+        console.log(`AUTH.JS: Criando novo usuário ID ${userData.id} com favoritos inicializados.`);
         users.push(userData);
+
+    } else { // ATUALIZANDO um usuário existente
+        const userIndex = users.findIndex(u => u.id === userData.id);
+        if (userIndex > -1) {
+            const currentUser = users[userIndex];
+            console.log("AUTH.JS (addOrUpdateUser): Dados do usuário ANTES da atualização:", JSON.parse(JSON.stringify(currentUser)));
+            console.log("AUTH.JS (addOrUpdateUser): Dados recebidos para ATUALIZAR:", JSON.parse(JSON.stringify(userData)));
+            
+            // Atualiza o usuário, garantindo que a senha e os favoritos existentes não sejam perdidos
+            // se não forem explicitamente passados nos novos dados.
+            users[userIndex] = { 
+                ...currentUser, 
+                ...userData,
+                password: userData.password || currentUser.password,
+                favorites: userData.favorites || currentUser.favorites
+            };
+            console.log("AUTH.JS (addOrUpdateUser): Dados do usuário DEPOIS da atualização:", JSON.parse(JSON.stringify(users[userIndex])));
+        } else {
+            // Caso raro: ID fornecido mas usuário não existe. Trata como novo.
+            userData.favorites = { teams: [], players: [] };
+            users.push(userData);
+        }
     }
+    
     saveToLocalStorage(USERS_KEY, users);
-    return users.find(u => u.id === userData.id); // Retorna o usuário salvo/atualizado
+    return users.find(u => u.id === userData.id);
 }
 
 export function deleteUser(id) {
@@ -56,41 +66,26 @@ export function getUserById(id) {
     return users.find(user => user.id === id);
 }
 
-export function updateAuthUser(userData) { // Usado para atualizar o próprio perfil logado
-    let users = getAllUsers();
+// Função para atualizar o próprio perfil do usuário logado
+export function updateAuthUser(userData) {
     const loggedUser = getLoggedUser();
-
     if (!loggedUser || loggedUser.id !== userData.id) {
-        console.error('Erro: Tentativa de atualizar um usuário que não está logado ou ID incorreto.');
         return false;
     }
-
-    const userIndex = users.findIndex(u => u.id === userData.id);
-
-    if (userIndex > -1) {
-        users[userIndex] = { 
-            ...users[userIndex], 
-            ...userData,
-            password: userData.password || users[userIndex].password // Mantém senha antiga se a nova for vazia
-        };
-        saveToLocalStorage(USERS_KEY, users);
-
+    
+    if (addOrUpdateUser(userData)) {
         // Atualiza a sessão com os novos dados (exceto senha)
+        const updatedUser = getUserById(userData.id);
         saveToLocalStorage(SESSION_KEY, {
-            id: users[userIndex].id,
-            name: users[userIndex].name,
-            email: users[userIndex].email,
-            role: users[userIndex].role,
-            city: users[userIndex].city, // Adicionado de volta, se presente
-            country: users[userIndex].country // Adicionado de volta, se presente
+            id: updatedUser.id, name: updatedUser.name, email: updatedUser.email, 
+            role: updatedUser.role, city: updatedUser.city, country: updatedUser.country
         });
         return true;
     }
     return false;
 }
 
-
-// --- Funções de Autenticação ---
+// --- Funções de Autenticação (Listeners de Formulário, etc.) ---
 
 document.getElementById('registerForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -112,80 +107,50 @@ document.getElementById('registerForm')?.addEventListener('submit', (e) => {
     }
 
     const users = getAllUsers();
-
     const alreadyExists = users.some(u => u.email === email && (!userId || u.id !== parseInt(userId)));
     if (alreadyExists) {
         showModalMessage('Este e-mail já está cadastrado para outro usuário!');
         return;
     }
     
-    let passwordToSave = personalPassword;
-
-    if (userId) { // Modo Edição
+    let passwordToSave;
+    if (userId && !personalPassword) { // Em modo de edição, se a senha estiver em branco, mantém a antiga
         const existingUser = users.find(u => u.id === parseInt(userId));
-        if (personalPassword) {
-            passwordToSave = personalPassword;
-        } else {
-            passwordToSave = existingUser.password; // Mantém a senha antiga se o campo estiver vazio
-        }
-        // Validação da senha universal do admin SÓ se o papel for admin E uma nova senha universal for digitada OU se for um novo admin
-         if (role === 'Administrador' && document.getElementById('adminUniversalPasswordGroup').style.display === 'block' && adminUniversalPassword !== '0000') {
-            showModalMessage('Para definir como Administrador, a Senha Universal do Administrador deve ser "0000".');
-            return;
-        }
-    } else { // Modo Cadastro Novo
-        if (!personalPassword) {
-            showModalMessage('Por favor, digite uma senha pessoal.');
-            return;
-        }
-        if (role === 'Administrador') {
-            if (adminUniversalPassword !== '0000') {
-                showModalMessage('Para se registrar como Administrador, a Senha Universal do Administrador deve ser "0000".');
-                return;
-            }
-        } else if (adminUniversalPassword) {
-             showModalMessage('A Senha Universal do Administrador só é relevante para o papel de Administrador.');
+        passwordToSave = existingUser.password;
+    } else {
+        passwordToSave = personalPassword;
+    }
+    
+    // Validações de senha universal para administradores
+    if (role === 'Administrador') {
+        // Para um novo admin ou ao mudar para admin, a senha universal é necessária
+        const isBecomingAdmin = !userId || users.find(u => u.id === parseInt(userId))?.role !== 'Administrador';
+        if (isBecomingAdmin && adminUniversalPassword !== '0000') {
+             showModalMessage('Para se registrar ou se tornar Administrador, a Senha Universal deve ser "0000".');
              return;
         }
     }
 
-
     const userData = { 
-        id: userId ? parseInt(userId) : null,
-        name,
-        email,
-        password: passwordToSave, 
-        city,
-        country,
-        role
+        id: userId ? parseInt(userId) : null, name, email, password: passwordToSave, city, country, role
     };
+    console.log("AUTH.JS (registerForm listener): Enviando estes dados para addOrUpdateUser:", userData);
 
     const savedUser = addOrUpdateUser(userData);
 
-    if (!userId) { 
+    if (!userId) { // Novo Cadastro
         saveToLocalStorage(SESSION_KEY, { 
-            id: savedUser.id, 
-            name: savedUser.name, 
-            email: savedUser.email, 
-            role: savedUser.role,
-            city: savedUser.city,
-            country: savedUser.country
+            id: savedUser.id, name: savedUser.name, email: savedUser.email, 
+            role: savedUser.role, city: savedUser.city, country: savedUser.country
         });
         showModalMessage('Cadastro realizado com sucesso! Você será redirecionado.', () => {
             window.location.href = 'profile.html';
         });
-    } else { 
-        // Se o admin editou outro usuário, apenas atualiza. Se editou a si mesmo, atualiza a sessão.
+    } else { // Edição bem-sucedida
         const loggedUser = getLoggedUser();
+        // Atualiza a sessão apenas se o admin editou a si mesmo
         if (loggedUser && loggedUser.id === savedUser.id) {
-            saveToLocalStorage(SESSION_KEY, {
-                 id: savedUser.id, 
-                 name: savedUser.name, 
-                 email: savedUser.email, 
-                 role: savedUser.role,
-                 city: savedUser.city,
-                 country: savedUser.country
-            });
+            updateAuthUser(savedUser); // Reusa a função para garantir que a sessão fique correta
         }
         showModalMessage('Dados do usuário atualizados com sucesso!', () => {
             window.location.href = 'listing.html';
@@ -197,21 +162,15 @@ document.getElementById('loginForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-
     const users = getAllUsers();
     const user = users.find((u) => u.email === email && u.password === password);
-
     if (user) {
         saveToLocalStorage(SESSION_KEY, { 
-            id: user.id, 
-            name: user.name, 
-            email: user.email, 
-            role: user.role,
-            city: user.city,
-            country: user.country
+            id: user.id, name: user.name, email: user.email, 
+            role: user.role, city: user.city, country: user.country
         });
-        showModalMessage(`Login realizado com sucesso! Bem-vindo(a), ${user.name}! Você será redirecionado.`, () => {
-            window.location.href = 'main.html'; // Redireciona para main.html após login
+        showModalMessage(`Login realizado com sucesso! Bem-vindo(a), ${user.name}!`, () => {
+            window.location.href = 'main.html';
         });
     } else {
         showModalMessage('E-mail ou senha inválidos!');
@@ -224,7 +183,6 @@ export function getLoggedUser() {
 
 export function logout() {
     localStorage.removeItem(SESSION_KEY);
-    // Não limpa os favoritos ao deslogar
     showModalMessage('Você foi desconectado.', () => {
          window.location.href = 'login.html';
     });
@@ -234,31 +192,22 @@ export function showModalMessage(message, callback) {
     const modal = document.getElementById('popupModal');
     const msg = document.getElementById('modalMessage');
     const closeBtn = document.getElementById('closeModal');
-
     if (!modal || !msg || !closeBtn) {
-        console.warn('Elementos do modal não encontrados. Exibindo alert padrão.');
         alert(message);
         if (callback) callback();
         return;
     }
-
     msg.textContent = message;
-    
-    // Garante que o listener antigo seja removido antes de adicionar um novo
     const newCloseBtn = closeBtn.cloneNode(true);
     closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
-
     const handler = () => {
-        modal.close();
+        if (modal.open) modal.close();
         if (callback) callback();
     };
-
-    newCloseBtn.addEventListener('click', handler, { once: true }); // { once: true } para auto-remover após clique
-    
+    newCloseBtn.addEventListener('click', handler, { once: true });
     if (typeof modal.showModal === "function") {
         modal.showModal();
     } else {
-        console.warn("Browser não suporta dialog.showModal(). Exibindo alert.");
         alert(message);
         if (callback) callback();
     }

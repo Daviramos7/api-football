@@ -1,17 +1,16 @@
 // assets/js/profile.js
-import { getLoggedUser, addOrUpdateUser, logout, showModalMessage, updateAuthUser } from './auth.js';
+import { getLoggedUser, updateAuthUser, logout, showModalMessage } from './auth.js';
 import { 
     getFavorites, 
-    removeFromFavoritesOnPage, // Usaremos esta para o contexto da página
-    FAVORITES_KEY, 
-    FAVORITES_CHANGED_EVENT 
+    removeFromFavoritesOnPage, 
+    FAVORITES_CHANGED_EVENT,
+    FAVORITES_KEY_FOR_EVENT // Usado para o listener de storage
 } from './favorites.js';
 
 // Funções para renderizar os cards de favoritos (sem links para detalhes)
 function renderFavoritePlayerCard(player) {
     return `
         <div class="card player-card" data-id="${player.id}" data-type="players">
-            
             <div class="player-photo-container">
                 <img src="${player.photo || 'assets/img/player-placeholder.png'}" alt="${player.name}" class="player-photo" onerror="this.onerror=null; this.src='assets/img/player-placeholder.png'">
                 ${player.team?.logo ?
@@ -33,7 +32,6 @@ function renderFavoritePlayerCard(player) {
 function renderFavoriteTeamCard(team) {
     return `
         <div class="card team-card" data-id="${team.id}" data-type="teams">
-            
             <div class="team-header">
                 <img src="${team.logo || 'assets/img/team-placeholder.png'}"
                      alt="${team.name}"
@@ -53,19 +51,12 @@ function renderFavoriteTeamCard(team) {
 function loadUserProfile() {
     const loggedUser = getLoggedUser();
     if (loggedUser) {
-        const profileUserIdField = document.getElementById('profileUserId');
-        const profileUsernameField = document.getElementById('profileUsername');
-        const profileEmailField = document.getElementById('profileEmail');
-        const profileCityField = document.getElementById('profileCity');
-        const profileCountryField = document.getElementById('profileCountry');
-        const profileRoleField = document.getElementById('profileRole');
-
-        if (profileUserIdField) profileUserIdField.value = loggedUser.id;
-        if (profileUsernameField) profileUsernameField.value = loggedUser.name;
-        if (profileEmailField) profileEmailField.value = loggedUser.email;
-        if (profileCityField) profileCityField.value = loggedUser.city || '';
-        if (profileCountryField) profileCountryField.value = loggedUser.country || '';
-        if (profileRoleField) profileRoleField.value = loggedUser.role || 'Usuário Padrão';
+        document.getElementById('profileUserId').value = loggedUser.id;
+        document.getElementById('profileUsername').value = loggedUser.name;
+        document.getElementById('profileEmail').value = loggedUser.email;
+        document.getElementById('profileCity').value = loggedUser.city || '';
+        document.getElementById('profileCountry').value = loggedUser.country || '';
+        document.getElementById('profileRole').value = loggedUser.role || 'Usuário Padrão';
     } else {
         showModalMessage('Você precisa estar logado para acessar esta página.', () => {
             window.location.href = 'login.html';
@@ -74,7 +65,10 @@ function loadUserProfile() {
 }
 
 function loadFavoritesOnProfile() {
-    const favorites = getFavorites();
+    const loggedUser = getLoggedUser();
+    if (!loggedUser) return; // Segurança, embora a página já deva redirecionar
+
+    const favorites = getFavorites(); // Pega os favoritos DO USUÁRIO LOGADO
     
     const teamsContainer = document.getElementById('favoriteTeams');
     if (teamsContainer) {
@@ -119,19 +113,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const userDataToUpdate = {
                 id: parseInt(userId),
                 name: username,
-                email: loggedUser.email, // Email não é editável no formulário
-                password: newPassword ? newPassword : undefined, // Envia apenas se uma nova senha for digitada
+                email: loggedUser.email, 
+                password: newPassword ? newPassword : undefined, 
                 city: city,
                 country: country,
-                role: loggedUser.role // Papel não é editável no formulário de perfil
+                role: loggedUser.role 
             };
             
-            if (updateAuthUser(userDataToUpdate)) { // updateAuthUser também atualiza a sessão
+            if (updateAuthUser(userDataToUpdate)) {
                  showModalMessage('Dados do perfil salvos com sucesso!');
-                 loadUserProfile(); // Recarrega dados do perfil no formulário
+                 loadUserProfile(); 
                  const profilePasswordField = document.getElementById('profilePassword');
                  if (profilePasswordField) {
-                    profilePasswordField.value = ''; // Limpa o campo de senha
+                    profilePasswordField.value = '';
                  }
             } else {
                 showModalMessage('Erro ao salvar os dados do perfil.');
@@ -145,13 +139,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.addEventListener(FAVORITES_CHANGED_EVENT, loadFavoritesOnProfile);
-    window.addEventListener('storage', (e) => { 
-        if (e.key === FAVORITES_KEY) { 
+    window.addEventListener('storage', (e) => {
+        // O evento de storage é para sincronização entre abas.
+        // A chave 'users' é alterada quando um favorito é salvo.
+        if (e.key === 'users') { 
             loadFavoritesOnProfile();
         }
     });
 
-    // Adiciona o link ativo na navegação
     const links = document.querySelectorAll('nav ul li a');
     const currentPage = window.location.pathname.split('/').pop() || 'profile.html';
     links.forEach(link => {
@@ -159,9 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Função global para ser chamada pelos botões "Remover" nos cards de favoritos desta página
 window.handleProfileRemoveFavorite = (type, itemId) => {
     if (confirm(`Tem certeza que deseja remover este ${type === 'teams' ? 'time' : 'jogador'} dos favoritos?`)) {
-        removeFromFavoritesOnPage(type, itemId, 'profilePage'); // Passa o contexto da página
+        removeFromFavoritesOnPage(type, itemId, 'profilePage');
     }
 };

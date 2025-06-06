@@ -5,13 +5,21 @@ import {
     isFavorite, 
     syncFavoriteButtons,
     FAVORITES_CHANGED_EVENT,
-    FAVORITES_KEY         
+    FAVORITES_KEY_FOR_EVENT // Usaremos a chave de evento, se necessário
 } from './favorites.js'; 
 
 const utils = {
     removeAccents: str => str.normalize('NFD').replace(/[\u0300-\u036f]/g, ''),
     formatCountry: country => country?.toLowerCase() === 'brazil' ? 'Brasil' : country,
 };
+
+// Define as ligas específicas para a busca, conforme solicitado
+const SEARCH_LEAGUES = [
+    { id: 71, name: 'Brasileirão Série A', season: 2025 }, 
+    { id: 72, name: 'Brasileirão Série B', season: 2025 }, 
+    { id: 75, name: 'Brasileirão Série C', season: 2025 }, 
+    { id: 76, name: 'Brasileirão Série D', season: 2025 }
+];
 
 const SEARCH_RESULTS_CACHE_PREFIX = 'search_futebol_results_cache_';
 const SEARCH_CACHE_DURATION_MS = 1000 * 60 * 30; // 30 minutos
@@ -32,11 +40,9 @@ function cleanupExpiredSearchResultsCache() {
 
 async function searchBrazilianData(query) {
     const normalizedQuery = utils.removeAccents(query.toLowerCase());
-    const currentYear = new Date().getFullYear();
-    // A chave do cache não precisa mais do tipo de busca
     const cacheKey = `${SEARCH_RESULTS_CACHE_PREFIX}${normalizedQuery}`;
 
-    // 1. Verificando o cache no localStorage
+    // 1. Verificando o cache de resultados completos no localStorage
     try {
         const cachedItemString = localStorage.getItem(cacheKey);
         if (cachedItemString) {
@@ -55,52 +61,48 @@ async function searchBrazilianData(query) {
     
     const results = { teams: new Map(), players: new Map() };
     const searchingMessageDiv = document.getElementById('searchResults');
+    let leaguesProcessed = 0;
 
-    try {
-        // --- Sempre busca por TIMES ---
-        if (searchingMessageDiv) searchingMessageDiv.innerHTML = `<div class="searching-message">Buscando times...</div>`;
-        const teamSearchTerm = encodeURIComponent(query);
-        const teamRes = await fetchFromAPI(`teams?country=Brazil&search=${teamSearchTerm}`);
-        
-        if (teamRes?.response?.length > 0) {
-            teamRes.response.forEach(({ team, venue }) => {
-                const countryLower = team.country?.toLowerCase();
-                if ((countryLower === 'brazil' || countryLower === 'brasil') && utils.removeAccents(team.name.toLowerCase()).includes(normalizedQuery)) {
-                    const teamId = Number(team.id);
-                    if (isNaN(teamId)) return;
-                    results.teams.set(teamId, { id: teamId, name: team.name, logo: team.logo, country: utils.formatCountry(team.country), city: team.city || 'Não informada', founded: team.founded, venue: venue, leagues: ["Nacional"] });
-                }
-            });
+    // 2. Iterar sobre as ligas definidas para fazer as buscas
+    for (const league of SEARCH_LEAGUES) {
+        if (searchingMessageDiv) { 
+            searchingMessageDiv.innerHTML = `<div class="searching-message">Buscando em ${league.name}... (${leaguesProcessed + 1}/${SEARCH_LEAGUES.length})</div>`;
         }
+        try {
+            // BUSCAR TIMES NA LIGA ATUAL
+            const teamRes = await fetchFromAPI(`teams?league=${league.id}&season=${league.season}`);
+            if (teamRes?.response?.length > 0) {
+                teamRes.response.forEach(({ team, venue }) => { 
+                    if (utils.removeAccents(team.name.toLowerCase()).includes(normalizedQuery)) {
+                        const teamId = Number(team.id);
+                        if (isNaN(teamId)) return;
+                        const existingTeam = results.teams.get(teamId);
+                        const leaguesFoundIn = [...new Set([...(existingTeam?.leagues || []), league.name])];
+                        results.teams.set(teamId, { id: teamId, name: team.name, logo: team.logo, leagues: leaguesFoundIn, country: utils.formatCountry(team.country), city: team.city || 'Não informada', founded: team.founded, venue: venue });
+                    }
+                });
+            }
 
-        // --- Sempre busca por JOGADORES ---
-        if (searchingMessageDiv) searchingMessageDiv.innerHTML = `<div class="searching-message">Buscando jogadores...</div>`;
-        const playerSearchTerm = encodeURIComponent(query);
-        const playerRes = await fetchFromAPI(`players?search=${playerSearchTerm}&season=${currentYear}`);
-
-        if (playerRes?.response?.length > 0) {
-            playerRes.response.forEach(({ player, statistics }) => {
-                const nationalLower = player.nationality?.toLowerCase();
-                const latestStat = statistics?.[0];
-                const teamCountryLower = latestStat?.team?.country?.toLowerCase();
-                const leagueCountryLower = latestStat?.league?.country?.toLowerCase();
-                const isBrazilianNational = (nationalLower === 'brazil' || nationalLower === 'brasil');
-                const playsInBrazil = (teamCountryLower === 'brazil' || teamCountryLower === 'brasil' || leagueCountryLower === 'brazil' || leagueCountryLower === 'brasil');
-
-                if ((isBrazilianNational || playsInBrazil) && utils.removeAccents(player.name.toLowerCase()).includes(normalizedQuery)) {
+            // BUSCAR JOGADORES NA LIGA ATUAL
+            const playerSearchTerm = encodeURIComponent(query);
+            const playerRes = await fetchFromAPI(`players?league=${league.id}&season=${league.season}&search=${playerSearchTerm}`);
+            if (playerRes?.response?.length > 0) {
+                playerRes.response.forEach(({ player, statistics }) => {
                     const playerId = Number(player.id);
                     if (isNaN(playerId)) return;
-                    const teamInfo = latestStat?.team || { name: 'Clube não informado', logo: null };
-                    const leagueInfo = latestStat?.league || { name: 'Liga não informada' };
-                    results.players.set(playerId, { id: playerId, name: player.name, photo: player.photo, age: player.age, nationality: utils.formatCountry(player.nationality), team: { id: Number(teamInfo.id), name: teamInfo.name, logo: teamInfo.logo }, leagues: [leagueInfo.name] });
-                }
-            });
+                    const existingPlayer = results.players.get(playerId);
+                    const teamInfo = statistics[0]?.team || { name: 'Clube não informado', logo: null };
+                    const leaguesFoundIn = [...new Set([...(existingPlayer?.leagues || []), league.name])]; 
+                    results.players.set(playerId, { id: playerId, name: player.name, photo: player.photo, age: player.age, nationality: utils.formatCountry(player.nationality), team: { id: Number(teamInfo.id), name: teamInfo.name, logo: teamInfo.logo }, leagues: leaguesFoundIn });
+                });
+            }
+        } catch (error) {
+            console.error(`Erro ao buscar na liga ${league.name}:`, error);
+            if (error.message.includes('Limite de requisições diárias atingido')) {
+                throw error;
+            }
         }
-    } catch (error) {
-        console.error(`Erro durante a busca por "${query}":`, error);
-        if (searchingMessageDiv && error.message.includes('Limite de requisições diárias atingido')) {
-            throw error;
-        }
+        leaguesProcessed++;
     }
 
     const finalResults = {
@@ -108,6 +110,7 @@ async function searchBrazilianData(query) {
         players: Array.from(results.players.values()).sort((a, b) => a.name.localeCompare(b.name))
     };
     
+    // Salva no cache do localStorage somente se houver algum resultado
     if (finalResults.teams.length > 0 || finalResults.players.length > 0) {
         const itemToCache = { data: finalResults, timestamp: Date.now() };
         try {
@@ -137,19 +140,19 @@ async function renderSearchResults(query) {
     const resultsDiv = document.getElementById('searchResults');
     if (!resultsDiv) return; 
 
-    resultsDiv.innerHTML = `<div class="searching-message">Buscando times e jogadores...</div>`;
+    resultsDiv.innerHTML = `<div class="searching-message">Buscando...</div>`;
     try {
         const { teams, players } = await searchBrazilianData(query); 
         
         let html = '<h2 class="results-title">Resultados da Busca</h2>';
         if (teams.length === 0 && players.length === 0) {
-            html = `<div class="no-results-found"><h2 class="results-title">Resultados da Busca</h2><p class="no-results-message">Nenhum resultado encontrado para "${query}".</p></div>`;
+            html = `<div class="no-results-found"><h2 class="results-title">Resultados da Busca</h2><p class="no-results-message">Nenhum resultado encontrado para "${query}" nas séries A, B, C ou D.</p></div>`;
         } else {
             html += `<div class="teams-section"><h3>Times</h3>`;
             if (teams.length > 0) {
                 html += `<div class="results-grid">${teams.map(renderTeamCard).join('')}</div>`;
             } else {
-                html += `<p class="no-results-message">Nenhum time encontrado para "${query}".</p>`;
+                html += `<p class="no-results-message">Nenhum time encontrado para "${query}" nas séries A, B, C ou D.</p>`;
             }
             html += `</div>`;
 
@@ -157,7 +160,7 @@ async function renderSearchResults(query) {
             if (players.length > 0) {
                 html += `<div class="results-grid">${players.map(renderPlayerCard).join('')}</div>`;
             } else {
-                html += `<p class="no-results-message">Nenhum jogador encontrado para "${query}".</p>`;
+                html += `<p class="no-results-message">Nenhum jogador encontrado para "${query}" nas séries A, B, C ou D.</p>`;
             }
             html += `</div>`;
         }
@@ -186,10 +189,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const query = queryInput ? queryInput.value.trim() : '';
             if (!query) { alert('Por favor, digite algo para pesquisar.'); return; }
             
-            // Lógica de tipo de busca foi removida
             const currentUrl = new URL(window.location.href); 
             currentUrl.searchParams.set('query', query);
-            currentUrl.searchParams.delete('type'); // Remove o parâmetro 'type' se existir
+            currentUrl.searchParams.delete('type'); 
             window.history.pushState({ query: query }, '', currentUrl.toString()); 
             
             await renderSearchResults(query);
@@ -207,6 +209,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const links = document.querySelectorAll('nav ul li a');
     const currentPagePath = window.location.pathname.split('/').pop() || 'search.html'; 
     links.forEach(link => { link.classList.toggle('active', link.getAttribute('href') === currentPagePath); });
+    
     window.addEventListener(FAVORITES_CHANGED_EVENT, syncFavoriteButtons);
-    window.addEventListener('storage', (e) => { if (e.key === FAVORITES_KEY || e.key.startsWith(SEARCH_RESULTS_CACHE_PREFIX)) { syncFavoriteButtons(); } });
+    window.addEventListener('storage', (e) => { 
+        if (e.key && e.key.startsWith(SEARCH_RESULTS_CACHE_PREFIX)) { // Reage a mudanças no cache de busca também
+            syncFavoriteButtons(); 
+        }
+    });
 });

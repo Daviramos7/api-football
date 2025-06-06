@@ -1,7 +1,7 @@
 // assets/js/api.js
 
 const API_HOST = 'api-football-v1.p.rapidapi.com';
-const API_KEY = '102ffdcac2mshf9659b20ab7d7b7p1ea8bdjsnaa051d210b0b'; // Lembre-se de usar sua chave real
+const API_KEY = '102ffdcac2mshf9659b20ab7d7b7p1ea8bdjsnaa051d210b0b'; // Sua chave da API
 
 const API_CACHE_PREFIX = 'api_football_cache_';
 
@@ -10,7 +10,6 @@ let lastRequestDate = new Date().toDateString();
 const MAX_DAILY_REQUESTS = 95;
 
 function cleanupExpiredApiCache() {
-    // console.log('Limpando cache da API expirado do localStorage...');
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && key.startsWith(API_CACHE_PREFIX)) {
@@ -23,9 +22,7 @@ function cleanupExpiredApiCache() {
                         localStorage.removeItem(key);
                     }
                 }
-            } catch (e) {
-                localStorage.removeItem(key);
-            }
+            } catch (e) { localStorage.removeItem(key); }
         }
     }
 }
@@ -36,17 +33,14 @@ export async function fetchFromAPI(endpoint, version = 'v3') {
         requestCount = 0;
         lastRequestDate = today;
         console.log('Contador de requisições diárias resetado.');
-        cleanupExpiredApiCache(); // Limpa cache expirado uma vez por dia
+        cleanupExpiredApiCache();
     }
 
     const cacheKey = `${API_CACHE_PREFIX}${version}-${endpoint}`;
     
-    // Duração do cache baseada no endpoint
     let cacheDuration = 1000 * 60 * 60; // Padrão: 1 hora
     if (endpoint.includes('standings')) {
         cacheDuration = 1000 * 60 * 60 * 24; // 24 horas para classificações
-    } else if (endpoint.includes('teams?id=') || endpoint.includes('players?id=')) {
-        cacheDuration = 1000 * 60 * 60 * 24 * 7; // 7 dias para detalhes de time/jogador
     }
 
     // 1. Tentar buscar do localStorage
@@ -55,25 +49,22 @@ export async function fetchFromAPI(endpoint, version = 'v3') {
         if (cachedItemString) {
             const cachedItem = JSON.parse(cachedItemString);
             if (cachedItem.timestamp > Date.now() - cacheDuration) {
-                // console.log(`CACHE HIT (localStorage): Dados para ${endpoint} servidos do cache.`);
                 return cachedItem.data;
             } else {
                 localStorage.removeItem(cacheKey);
             }
         }
     } catch (e) {
-        localStorage.removeItem(cacheKey); // Remove item corrompido
+        localStorage.removeItem(cacheKey);
     }
 
-    // 2. Verificar limite de requisições diárias
+    // 2. Verificar limite de requisições
     if (requestCount >= MAX_DAILY_REQUESTS) {
-        console.warn(`Limite de requisições diárias (${MAX_DAILY_REQUESTS}) atingido.`);
         throw new Error('Limite de requisições diárias atingido. Tente novamente amanhã.');
     }
 
     // 3. Fazer a chamada à API
     try {
-        // console.log(`API CALL: Fazendo requisição para: https://${API_HOST}/${version}/${endpoint}`);
         const response = await fetch(`https://${API_HOST}/${version}/${endpoint}`, {
             method: 'GET',
             headers: { 'x-rapidapi-host': API_HOST, 'x-rapidapi-key': API_KEY },
@@ -91,11 +82,9 @@ export async function fetchFromAPI(endpoint, version = 'v3') {
 
         const data = await response.json();
         
-        // Salvar no localStorage
         const itemToCache = { data: data, timestamp: Date.now() };
         try {
             localStorage.setItem(cacheKey, JSON.stringify(itemToCache));
-            // console.log(`CACHE SET (localStorage): Dados para ${endpoint} salvos.`);
         } catch (e) {
             console.error(`Erro ao salvar no localStorage (quota pode estar cheia):`, e);
             cleanupExpiredApiCache(); 
