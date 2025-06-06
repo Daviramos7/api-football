@@ -1,4 +1,4 @@
-/* assets/css/global.css - VERSÃO FINAL ATUALIZADA */
+/* assets/css/global.css - VERSÃO FINAL COM TODAS AS CORREÇÕES */
 
 /* --- :root Variáveis CSS --- */
 :root {
@@ -39,6 +39,11 @@ img { max-width: 100%; height: auto; display: block; }
     padding-left: 1rem; padding-right: 1rem;
 }
 main { flex-grow: 1; padding-top: 1.5rem; padding-bottom: 1.5rem; }
+
+/* CORREÇÃO: Centraliza parágrafos soltos abaixo de formulários */
+main > p {
+    text-align: center;
+}
 
 /* --- Cabeçalho e Navegação --- */
 header {
@@ -83,11 +88,23 @@ button:hover, input[type="submit"]:hover, .btn:hover { background-color: var(--p
 button:active, input[type="submit"]:active, .btn:active { transform: scale(0.98); }
 .remove-btn { background-color: var(--error); }
 .remove-btn:hover { background-color: #b71c1c; transform: translateY(-2px); }
-.logout-button { background-color: var(--accent) !important; align-self: stretch; margin-top: 1rem; }
+.logout-button { 
+    background-color: var(--accent) !important;
+    margin: 1rem auto;
+    display: block;
+    width: fit-content;
+}
 .logout-button:hover { background-color: #e64a69 !important; }
 
 /* --- Modal de Pop-up --- */
 dialog#popupModal {
+    /* CORREÇÃO: Força a centralização vertical e horizontal */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+
     width: 90%; max-width: 400px; padding: 1.5rem; border: none; border-radius: 12px;
     background: var(--surface); box-shadow: 0 8px 24px var(--shadow-medium); text-align: center;
 }
@@ -108,7 +125,6 @@ dialog#popupModal button#closeModal { margin-top: 0.5rem; }
 .match-card:hover, .player-detail-card:hover, .team-detail-card:hover, .standings-card:hover {
     transform: translateY(-4px); box-shadow: 0 6px 16px var(--shadow-medium);
 }
-/* .card-link foi removido */
 
 /* --- Botão de Favoritar (Estrela) --- */
 .favorite-button-container { position: absolute; top: 8px; right: 8px; z-index: 10; }
@@ -141,7 +157,6 @@ dialog#popupModal button#closeModal { margin-top: 0.5rem; }
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     max-width: 100%; margin-top: 0.2rem; text-align: center;
 }
-/* .favorite-link foi removido */
 
 /* --- Cards de Times e Jogadores (Resultados da Busca - search.html) --- */
 .results-grid .team-card .team-header, 
@@ -168,7 +183,6 @@ dialog#popupModal button#closeModal { margin-top: 0.5rem; }
 .results-grid .team-card .team-info p, 
 .results-grid .player-card .player-info p { display: none; }
 
-
 /* --- Cards de Favoritos (Listas em profile.html e favorites.html) --- */
 .favorites-container .card { padding: 1.25rem; text-align: center; }
 .favorites-container .player-card .player-photo-container {
@@ -186,45 +200,16 @@ dialog#popupModal button#closeModal { margin-top: 0.5rem; }
 .favorites-container .player-card .player-info h3 { font-size: 1.2rem; color: var(--text-dark); margin-bottom: 0.5rem; }
 .favorites-container .player-card .player-info p { font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.3rem; line-height: 1.4; text-align: center; }
 .favorites-container .player-card .remove-btn { margin-top: 1rem; padding: 0.5rem 1rem; font-size: 0.85rem; }
-
 .favorites-container .team-card .team-header { margin-bottom: 1rem; }
 .favorites-container .team-card .team-logo { width: 90px; height: 90px; object-fit: contain; margin: 0 auto 0.75rem; }
 .favorites-container .team-card .team-info h3 { font-size: 1.2rem; color: var(--text-dark); margin-bottom: 0.5rem; }
 .favorites-container .team-card .team-info p { font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.3rem; line-height: 1.4; text-align: center; }
 .favorites-container .team-card .remove-btn { margin-top: 1rem; padding: 0.5rem 1rem; font-size: 0.85rem; }
 
-
-/* --- Cards de Detalhes (Time, Jogador, Partida) --- */
-.team-detail-card { max-width: 600px; padding: 1.5rem; text-align: center; }
-.team-big-logo { width: 140px; height: 140px; margin: 0 auto 1rem; box-shadow: 0 2px 6px var(--shadow-light); }
-.team-detail-card h2 { font-size: 1.8rem; margin-bottom: 0.75rem; }
-.team-detail-card .team-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem 1rem; width: 100%; margin-bottom: 1rem; text-align: left; }
-.team-detail-card .team-info-grid p { margin: 0.3rem 0; font-size: 0.9rem; }
-.team-detail-card .team-info-grid p strong { color: var(--text-dark); min-width: 80px; display: inline-block; }
-.venue-details { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); width: 100%; text-align: center; }
-.venue-details h3 { font-size: 1.3rem; margin-bottom: 0.75rem; }
-.venue-details p { font-size: 0.9rem; }
-.venue-image { max-height: 250px; margin: 0.75rem auto 0; }
-
-.player-detail-card { max-width: 500px; padding: 1.5rem; text-align: center; }
-.player-big-photo { width: 140px; height: 140px; border: 3px solid var(--primary); padding: 4px; box-shadow: 0 4px 15px var(--shadow-medium); margin: 0 auto 1rem; }
-.player-detail-card h2 { font-size: 1.6rem; margin-bottom: 0.75rem; }
-.player-detail-card p { margin: 0.4rem 0; font-size: 0.9rem; }
-.player-bio-info, .player-career-info { margin-bottom: 1rem; padding: 1rem; background-color: rgba(0,0,0,0.02); border-radius: 8px; text-align: left; }
-.player-career-info h3 { font-size: 1.2rem; margin-bottom: 0.75rem; padding-bottom: 0.4rem; text-align: center; border-bottom: 1px solid var(--border); }
-
-.match-details-container {
-    display: grid; gap: 1.5rem; width: 95%; max-width: 1200px;
-    margin: 1.5rem auto; padding: 0;
-    grid-template-areas: "matchDetails" "matchDescription" "standingsCard"; 
-    grid-template-columns: 1fr;
+/* --- Cards de Detalhes (Escondidos por padrão pois a funcionalidade foi removida) --- */
+.team-detail-card, .player-detail-card, .match-details-container { 
+    display: none; 
 }
-.match-card { padding: 1rem; display: flex; flex-direction: column; gap: 1rem; max-width: none; text-align: center; }
-.match-card .team-block { width: auto; }
-.match-card .team-logo-big { width: 50px; height: 50px; }
-.match-card .match-score { font-size: 1.8rem; }
-.match-description { padding: 1rem; font-size: 0.9rem; }
-.match-description h2 { font-size: 1.3rem; }
 
 /* --- Mensagens de Feedback --- */
 .no-favorites, .searching-message, .no-results-message, 
@@ -239,7 +224,7 @@ dialog#popupModal button#closeModal { margin-top: 0.5rem; }
 .searching-message, .loading-message { animation: pulse 1.5s infinite ease-in-out; border: none; box-shadow: none; background: transparent; color: var(--primary); font-weight: 500; padding: 1.5rem 1rem;}
 @keyframes pulse {0%{opacity:0.6;}50%{opacity:1;}100%{opacity:0.6;}}
 
-/* --- Layout da Página Principal (main.html - FAVORITOS E CLASSIFICAÇÃO) --- */
+/* --- Layout da Página Principal (main.html) --- */
 .main-page-grid { display: flex; flex-direction: column; gap: 1.5rem; }
 .favorites-section, .standings-section { 
     width: 100%; padding: 1.5rem; background: var(--surface);
@@ -249,8 +234,9 @@ dialog#popupModal button#closeModal { margin-top: 0.5rem; }
     text-align: left; font-size: 1.3rem; margin-bottom: 1rem;
     color: var(--primary); border-bottom: 2px solid var(--primary-light); padding-bottom: 0.5rem;
 }
-.favorites-section h3 { /* Sub-títulos "Times Favoritos", "Jogadores Favoritos" */
-    text-align: left; font-size: 1.1rem; color: var(--text-dark);
+.favorites-section h3 {
+    text-align: center;
+    font-size: 1.1rem; color: var(--text-dark);
     margin-bottom: 0.75rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--border);
 }
 .favorites-section #favoriteTeams, 
@@ -260,25 +246,23 @@ dialog#popupModal button#closeModal { margin-top: 0.5rem; }
 }
 .favorites-section .favorite-card { max-width: none; width: 100%; }
 
-/* --- Seção e Tabela de Classificação (main.html, match-details.html) --- */
-/* Estilos de .standings-section .standings-header já definidos acima */
+/* --- Seção e Tabela de Classificação --- */
 .standings-section .standings-header {
-    display: flex; flex-wrap: wrap; 
-    justify-content: space-between; align-items: center;
-    margin-bottom: 1.5rem; padding-bottom: 1rem;
-    border-bottom: 1px solid var(--border);
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+    margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
 }
-.standings-section .standings-header h2 { margin: 0; font-size: 1.4rem; text-align: left; border-bottom: none; }
+.standings-section .standings-header h2 { 
+    margin: 0; font-size: 1.4rem; text-align: left; border-bottom: none; 
+}
 .standings-section .standings-header .selectors-group { display: flex; gap: 0.75rem; align-items: center; }
 .standings-section .standings-header select {
     padding: 0.5rem 0.8rem; border-radius: 6px; border: 1px solid var(--border);
     background-color: var(--surface); font-size: 0.9rem; min-width: 150px;
 }
-#standingsList { overflow-x: auto; width: 100%; } /* Permite rolagem horizontal na tabela */
+#standingsList { overflow-x: auto; width: 100%; }
 .standings-table {
-    width: 100%; min-width: 600px; /* Largura mínima para evitar quebra excessiva */
-    border-collapse: collapse; font-size: 0.9rem; 
-    color: var(--text-dark); background-color: var(--surface);
+    width: 100%; min-width: 600px; border-collapse: collapse;
+    font-size: 0.9rem; color: var(--text-dark); background-color: var(--surface);
 }
 .standings-table th, .standings-table td {
     padding: 0.75rem 0.5rem; text-align: center; vertical-align: middle;
@@ -289,27 +273,35 @@ dialog#popupModal button#closeModal { margin-top: 0.5rem; }
     font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;
     border-top: 1px solid var(--border); border-bottom-width: 2px; 
 }
-.standings-table th:nth-child(2), .standings-table td:nth-child(2) { text-align: left; } /* Coluna "Time" */
-.standings-table td:nth-child(2) { display: flex; align-items: center; gap: 0.6rem; }
-.standings-table .team-name-in-table { font-weight: 500; white-space: nowrap; }
-.standings-table td:nth-child(3) { font-weight: 700; color: var(--primary); } /* Coluna "Pts" */
-.standings-table tbody tr:nth-child(even) { background-color: #fdfdfd; } /* Zebra striping */
+.standings-table th:nth-child(2) { text-align: left; padding-left: 1rem; }
+.standings-table td:nth-child(2) { 
+    text-align: left; 
+    justify-content: flex-start;
+    display: flex; align-items: center; gap: 0.6rem; 
+}
+.standings-table .team-name-in-table {
+    font-weight: 500;
+    white-space: nowrap;      
+    overflow: hidden;         
+    text-overflow: ellipsis;  
+    max-width: 150px;         
+    display: inline-block;    
+    vertical-align: middle;
+}
+.standings-table td:nth-child(3) { font-weight: 700; color: var(--primary); }
+.standings-table tbody tr:nth-child(even) { background-color: #fdfdfd; }
 .standings-table tbody tr:hover { background-color: #f1f3f5; }
 .standings-table tbody tr:last-child td { border-bottom: none; }
-.standings-table tbody tr.highlight-top td:first-child,
 .standings-table tbody tr[data-description*="promotion"] td:first-child { border-left: 4px solid var(--primary); }
-.standings-table tbody tr.highlight-bottom td:first-child,
 .standings-table tbody tr[data-description*="relegation"] td:first-child { border-left: 4px solid var(--error); }
-.standings-table tbody tr.highlight-match-team { background-color: rgba(108, 99, 255, 0.1); font-weight: 600; }
-.standings-table .form-cell span { /* Badges V, E, D */
+.standings-table .form-cell span {
     display: inline-block; width: 20px; height: 20px; line-height: 20px;
     text-align: center; border-radius: 4px; margin-right: 3px;
     font-size: 0.75rem; color: white; font-weight: bold; text-transform: uppercase;
 }
 .form-win { background: #27ae60; } .form-draw { background: #f39c12; } .form-loss { background: #c0392b; }
 
-
-/* --- Seções e Títulos na Página de Busca (search.html) --- */
+/* --- Outras Seções (Busca, Listagem de Usuários) --- */
 #filter-section { flex-direction: column; align-items: stretch; padding: 0.75rem; }
 #filter-section input.search-input { font-size: 0.95rem; }
 #filter-section button { width: 100%; }
@@ -317,8 +309,6 @@ dialog#popupModal button#closeModal { margin-top: 0.5rem; }
 .results-title { font-size: 1.6rem; }
 .results-title::after { width: 70px; height: 2px; }
 .results-grid { grid-template-columns: 1fr; gap: 1rem; justify-content: center; }
-
-/* --- Tabela de Listagem de Usuários (listing.html) --- */
 #data-table-section { overflow-x: auto; }
 #data-table th, #data-table td { padding: 0.6rem 0.8rem; font-size: 0.9rem; }
 #data-table td.actions .btn { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
@@ -330,38 +320,27 @@ footer {
     border-top: 1px solid var(--border); font-size: 0.85rem;
 }
 
-/* === Breakpoint Principal para Telas Maiores (Tablet em paisagem e Desktop) === */
+/* === Breakpoint Principal para Telas Maiores (Desktop) === */
 @media (min-width: 768px) {
     h1 { font-size: 2.2rem; } h2 { font-size: 1.75rem; } h3 { font-size: 1.25rem; }
-    nav ul { flex-wrap: nowrap; gap: 0.75rem; }
-    nav a { padding: 0.6rem 1.2rem; }
-    form { padding: 2rem; gap: 1.25rem; }
-    input[type="text"], input[type="email"], input[type="password"], textarea, select { padding: 0.8rem 1rem; font-size: 1rem; }
-    textarea { min-height: 100px; }
-    button, input[type="submit"], .btn { padding: 0.8rem 1.6rem; font-size: 1rem; }
-    dialog#popupModal { max-width: 420px; padding: 2rem; }
-    dialog#popupModal p#modalMessage { font-size: 1.1rem; }
-    .card, .favorite-card, .team-card, .player-card, .match-card, .player-detail-card, .team-detail-card { padding: 1.25rem; }
-    .favorites-section #favoriteTeams, .favorites-section #favoritePlayers { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-    #favoriteTeams.favorites-container, #favoritePlayers.favorites-container { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+    nav ul { flex-wrap: nowrap; }
+    form { padding: 2rem; }
+    button, input[type="submit"], .btn { font-size: 1rem; }
+    
     .results-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+    #favoriteTeams.favorites-container, #favoritePlayers.favorites-container { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
     .main-page-grid {
         display: grid; grid-template-areas: "main-content sidebar";
         grid-template-columns: minmax(0, 2.5fr) minmax(0, 1fr); gap: 2rem;
     }
     .standings-section { grid-area: main-content; } 
     .favorites-section { grid-area: sidebar; }    
-    .match-details-container {
-        grid-template-areas: "matchDetails standingsCard" "matchDescription standingsCard";
-        grid-template-columns: minmax(0, 2.5fr) minmax(0, 1.2fr); grid-template-rows: auto 1fr;
-    }
-    .match-card { flex-direction: row; }
+    
     #filter-section { flex-direction: row; align-items: center; }
     #filter-section button { width: auto; }
     .teams-section h3, .players-section h3 { text-align: left; }
-    .results-title { font-size: 1.8rem; }
+    
     .standings-section .standings-header { flex-direction: row; align-items: center; }
-    .standings-section .standings-header .selectors-group { flex-direction: row; width: auto; }
     .standings-section .standings-header select { width: auto; min-width: 180px; }
     .standings-table th, .standings-table td { padding: 0.75rem 0.5rem; font-size: 0.9rem; }
     .standings-table thead th { font-size: 0.7rem; }
