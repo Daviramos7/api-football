@@ -1,8 +1,5 @@
-// assets/js/api.js
-
 const API_HOST = 'api-football-v1.p.rapidapi.com';
-const API_KEY = '102ffdcac2mshf9659b20ab7d7b7p1ea8bdjsnaa051d210b0b'; // Sua chave da API
-
+const API_KEY = '102ffdcac2mshf9659b20ab7d7b7p1ea8bdjsnaa051d210b0b'; 
 const API_CACHE_PREFIX = 'api_football_cache_';
 
 let requestCount = 0;
@@ -17,7 +14,7 @@ function cleanupExpiredApiCache() {
                 const itemString = localStorage.getItem(key);
                 if (itemString) {
                     const item = JSON.parse(itemString);
-                    const maxAge = 1000 * 60 * 60 * 24 * 2; // Remove itens com mais de 2 dias
+                    const maxAge = 1000 * 60 * 60 * 24 * 2;
                     if (item.timestamp < Date.now() - maxAge) {
                         localStorage.removeItem(key);
                     }
@@ -38,12 +35,11 @@ export async function fetchFromAPI(endpoint, version = 'v3') {
 
     const cacheKey = `${API_CACHE_PREFIX}${version}-${endpoint}`;
     
-    let cacheDuration = 1000 * 60 * 60; // Padrão: 1 hora
+    let cacheDuration = 1000 * 60 * 60;
     if (endpoint.includes('standings')) {
-        cacheDuration = 1000 * 60 * 60 * 24; // 24 horas para classificações
+        cacheDuration = 1000 * 60 * 60 * 24;
     }
 
-    // 1. Tentar buscar do localStorage
     try {
         const cachedItemString = localStorage.getItem(cacheKey);
         if (cachedItemString) {
@@ -58,12 +54,10 @@ export async function fetchFromAPI(endpoint, version = 'v3') {
         localStorage.removeItem(cacheKey);
     }
 
-    // 2. Verificar limite de requisições
     if (requestCount >= MAX_DAILY_REQUESTS) {
         throw new Error('Limite de requisições diárias atingido. Tente novamente amanhã.');
     }
 
-    // 3. Fazer a chamada à API
     try {
         const response = await fetch(`https://${API_HOST}/${version}/${endpoint}`, {
             method: 'GET',
@@ -97,5 +91,4 @@ export async function fetchFromAPI(endpoint, version = 'v3') {
     }
 }
 
-// Chamar a limpeza de cache uma vez quando o script é carregado
 cleanupExpiredApiCache();

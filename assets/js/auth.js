@@ -1,9 +1,6 @@
-// assets/js/auth.js
-
 const USERS_KEY = 'users';
 const SESSION_KEY = 'session';
 
-// --- Funções de Utilitários de LocalStorage ---
 function saveToLocalStorage(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
 }
@@ -13,7 +10,6 @@ function getFromLocalStorage(key) {
     return saved ? JSON.parse(saved) : null;
 }
 
-// --- Funções de Gerenciamento de Usuários ---
 export function getAllUsers() {
     return getFromLocalStorage(USERS_KEY) || [];
 }
@@ -21,22 +17,18 @@ export function getAllUsers() {
 export function addOrUpdateUser(userData) {
     let users = getAllUsers();
     
-    if (!userData.id) { // Criando um NOVO usuário
+    if (!userData.id) { 
         userData.id = users.length > 0 ? Math.max(...users.map(u => u.id || 0)) + 1 : 1;
-        // MUDANÇA IMPORTANTE: Adiciona um campo de favoritos para novos usuários
         userData.favorites = { teams: [], players: [] }; 
         console.log(`AUTH.JS: Criando novo usuário ID ${userData.id} com favoritos inicializados.`);
         users.push(userData);
 
-    } else { // ATUALIZANDO um usuário existente
+    } else {
         const userIndex = users.findIndex(u => u.id === userData.id);
         if (userIndex > -1) {
             const currentUser = users[userIndex];
             console.log("AUTH.JS (addOrUpdateUser): Dados do usuário ANTES da atualização:", JSON.parse(JSON.stringify(currentUser)));
             console.log("AUTH.JS (addOrUpdateUser): Dados recebidos para ATUALIZAR:", JSON.parse(JSON.stringify(userData)));
-            
-            // Atualiza o usuário, garantindo que a senha e os favoritos existentes não sejam perdidos
-            // se não forem explicitamente passados nos novos dados.
             users[userIndex] = { 
                 ...currentUser, 
                 ...userData,
@@ -45,7 +37,6 @@ export function addOrUpdateUser(userData) {
             };
             console.log("AUTH.JS (addOrUpdateUser): Dados do usuário DEPOIS da atualização:", JSON.parse(JSON.stringify(users[userIndex])));
         } else {
-            // Caso raro: ID fornecido mas usuário não existe. Trata como novo.
             userData.favorites = { teams: [], players: [] };
             users.push(userData);
         }
@@ -66,7 +57,6 @@ export function getUserById(id) {
     return users.find(user => user.id === id);
 }
 
-// Função para atualizar o próprio perfil do usuário logado
 export function updateAuthUser(userData) {
     const loggedUser = getLoggedUser();
     if (!loggedUser || loggedUser.id !== userData.id) {
@@ -74,7 +64,6 @@ export function updateAuthUser(userData) {
     }
     
     if (addOrUpdateUser(userData)) {
-        // Atualiza a sessão com os novos dados (exceto senha)
         const updatedUser = getUserById(userData.id);
         saveToLocalStorage(SESSION_KEY, {
             id: updatedUser.id, name: updatedUser.name, email: updatedUser.email, 
@@ -84,8 +73,6 @@ export function updateAuthUser(userData) {
     }
     return false;
 }
-
-// --- Funções de Autenticação (Listeners de Formulário, etc.) ---
 
 document.getElementById('registerForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -114,16 +101,14 @@ document.getElementById('registerForm')?.addEventListener('submit', (e) => {
     }
     
     let passwordToSave;
-    if (userId && !personalPassword) { // Em modo de edição, se a senha estiver em branco, mantém a antiga
+    if (userId && !personalPassword) {
         const existingUser = users.find(u => u.id === parseInt(userId));
         passwordToSave = existingUser.password;
     } else {
         passwordToSave = personalPassword;
     }
     
-    // Validações de senha universal para administradores
     if (role === 'Administrador') {
-        // Para um novo admin ou ao mudar para admin, a senha universal é necessária
         const isBecomingAdmin = !userId || users.find(u => u.id === parseInt(userId))?.role !== 'Administrador';
         if (isBecomingAdmin && adminUniversalPassword !== '0000') {
              showModalMessage('Para se registrar ou se tornar Administrador, a Senha Universal deve ser "0000".');
@@ -138,7 +123,7 @@ document.getElementById('registerForm')?.addEventListener('submit', (e) => {
 
     const savedUser = addOrUpdateUser(userData);
 
-    if (!userId) { // Novo Cadastro
+    if (!userId) {
         saveToLocalStorage(SESSION_KEY, { 
             id: savedUser.id, name: savedUser.name, email: savedUser.email, 
             role: savedUser.role, city: savedUser.city, country: savedUser.country
@@ -146,12 +131,10 @@ document.getElementById('registerForm')?.addEventListener('submit', (e) => {
         showModalMessage('Cadastro realizado com sucesso! Você será redirecionado.', () => {
             window.location.href = 'profile.html';
         });
-    } else { // Edição bem-sucedida
+    } else {
         const loggedUser = getLoggedUser();
-        // Atualiza a sessão apenas se o admin editou a si mesmo
         if (loggedUser && loggedUser.id === savedUser.id) {
-            updateAuthUser(savedUser); // Reusa a função para garantir que a sessão fique correta
-        }
+            updateAuthUser(savedUser);}
         showModalMessage('Dados do usuário atualizados com sucesso!', () => {
             window.location.href = 'listing.html';
         });

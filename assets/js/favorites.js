@@ -1,11 +1,5 @@
-// assets/js/favorites.js
 import { getLoggedUser, addOrUpdateUser, getAllUsers } from './auth.js';
-
-// Este evento continua útil para atualizar a UI em tempo real
 export const FAVORITES_CHANGED_EVENT = 'favoritesChanged';
-
-// A chave 'footballFavorites' não é mais usada para salvar, mas é bom tê-la para o evento de storage
-// se você quiser que abas diferentes reajam a qualquer mudança de favoritos.
 export const FAVORITES_KEY_FOR_EVENT = 'userFavoritesUpdated';
 
 
@@ -16,7 +10,7 @@ export const FAVORITES_KEY_FOR_EVENT = 'userFavoritesUpdated';
 export function getFavorites() {
     const loggedUser = getLoggedUser();
     if (!loggedUser) {
-        return { teams: [], players: [] }; // Nenhum usuário logado, retorna favoritos vazios.
+        return { teams: [], players: [] };
     }
 
     const users = getAllUsers();
@@ -37,18 +31,15 @@ function saveCurrentUserFavorites(favorites) {
         return;
     }
 
-    // Cria um objeto de dados para atualização, contendo apenas o ID e os favoritos.
     const userDataToUpdate = {
         id: loggedUser.id,
         favorites: favorites
     };
 
-    // Reutiliza a função de auth.js para encontrar o usuário e atualizar seus dados.
     addOrUpdateUser(userDataToUpdate);
     
-    // Dispara o evento para notificar outras partes da UI sobre a mudança.
     window.dispatchEvent(new CustomEvent(FAVORITES_CHANGED_EVENT, {
-        detail: { newFavorites: favorites } // Envia os novos favoritos no evento
+        detail: { newFavorites: favorites }
     }));
 }
 
@@ -96,7 +87,7 @@ export function toggleFavorite(type, itemData) {
         const itemName = currentItemData.name || 'Item';
         if (isNaN(id)) { alert(`Erro: ID inválido para "${itemName}".`); return; }
 
-        const favorites = getFavorites(); // Pega os favoritos DO USUÁRIO ATUAL
+        const favorites = getFavorites();
 
         if (!favorites[type]) {
             favorites[type] = [];
@@ -104,7 +95,7 @@ export function toggleFavorite(type, itemData) {
 
         const index = favorites[type].findIndex(fav => Number(fav.id) === id);
 
-        if (index === -1) { // Adicionar
+        if (index === -1) {
             const simplifiedData = {
                 id, name: currentItemData.name,
                 photo: currentItemData.photo || (type === 'players' ? 'assets/img/player-placeholder.png' : null),
@@ -125,16 +116,13 @@ export function toggleFavorite(type, itemData) {
             updateFavoriteButtonClass(type, id, false);
         }
 
-        saveCurrentUserFavorites(favorites); // Salva os favoritos NO PERFIL DO USUÁRIO
+        saveCurrentUserFavorites(favorites);
     } catch (error) {
         console.error('Erro em toggleFavorite:', error);
         alert('Ocorreu um erro ao atualizar os favoritos.');
     }
 }
 
-/**
- * Remove um item dos favoritos e atualiza a UI da página (usado em profile.html e favorites.html).
- */
 export function removeFromFavoritesOnPage(type, itemId, pageContext = null) {
     const loggedUser = getLoggedUser();
     if (!loggedUser) return;
@@ -163,7 +151,6 @@ export function removeFromFavoritesOnPage(type, itemId, pageContext = null) {
     }
 }
 
-// Funções de sincronização de botões permanecem, mas agora usam getFavorites() que é sensível ao usuário.
 export function syncFavoriteButtons() {
     const favorites = getFavorites();
     ['teams', 'players'].forEach(type => {

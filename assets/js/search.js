@@ -1,11 +1,10 @@
-// assets/js/search.js
 import { fetchFromAPI } from './api.js';
 import { 
     toggleFavorite, 
     isFavorite, 
     syncFavoriteButtons,
     FAVORITES_CHANGED_EVENT,
-    FAVORITES_KEY_FOR_EVENT // Usaremos a chave de evento, se necessário
+    FAVORITES_KEY_FOR_EVENT
 } from './favorites.js'; 
 
 const utils = {
@@ -13,7 +12,6 @@ const utils = {
     formatCountry: country => country?.toLowerCase() === 'brazil' ? 'Brasil' : country,
 };
 
-// Define as ligas específicas para a busca, conforme solicitado
 const SEARCH_LEAGUES = [
     { id: 71, name: 'Brasileirão Série A', season: 2025 }, 
     { id: 72, name: 'Brasileirão Série B', season: 2025 }, 
@@ -22,7 +20,7 @@ const SEARCH_LEAGUES = [
 ];
 
 const SEARCH_RESULTS_CACHE_PREFIX = 'search_futebol_results_cache_';
-const SEARCH_CACHE_DURATION_MS = 1000 * 60 * 30; // 30 minutos
+const SEARCH_CACHE_DURATION_MS = 1000 * 60 * 30;
 
 function cleanupExpiredSearchResultsCache() {
     for (let i = 0; i < localStorage.length; i++) {
@@ -42,7 +40,6 @@ async function searchBrazilianData(query) {
     const normalizedQuery = utils.removeAccents(query.toLowerCase());
     const cacheKey = `${SEARCH_RESULTS_CACHE_PREFIX}${normalizedQuery}`;
 
-    // 1. Verificando o cache de resultados completos no localStorage
     try {
         const cachedItemString = localStorage.getItem(cacheKey);
         if (cachedItemString) {
@@ -63,13 +60,11 @@ async function searchBrazilianData(query) {
     const searchingMessageDiv = document.getElementById('searchResults');
     let leaguesProcessed = 0;
 
-    // 2. Iterar sobre as ligas definidas para fazer as buscas
     for (const league of SEARCH_LEAGUES) {
         if (searchingMessageDiv) { 
             searchingMessageDiv.innerHTML = `<div class="searching-message">Buscando em ${league.name}... (${leaguesProcessed + 1}/${SEARCH_LEAGUES.length})</div>`;
         }
         try {
-            // BUSCAR TIMES NA LIGA ATUAL
             const teamRes = await fetchFromAPI(`teams?league=${league.id}&season=${league.season}`);
             if (teamRes?.response?.length > 0) {
                 teamRes.response.forEach(({ team, venue }) => { 
@@ -83,7 +78,6 @@ async function searchBrazilianData(query) {
                 });
             }
 
-            // BUSCAR JOGADORES NA LIGA ATUAL
             const playerSearchTerm = encodeURIComponent(query);
             const playerRes = await fetchFromAPI(`players?league=${league.id}&season=${league.season}&search=${playerSearchTerm}`);
             if (playerRes?.response?.length > 0) {
@@ -110,7 +104,6 @@ async function searchBrazilianData(query) {
         players: Array.from(results.players.values()).sort((a, b) => a.name.localeCompare(b.name))
     };
     
-    // Salva no cache do localStorage somente se houver algum resultado
     if (finalResults.teams.length > 0 || finalResults.players.length > 0) {
         const itemToCache = { data: finalResults, timestamp: Date.now() };
         try {
@@ -123,7 +116,6 @@ async function searchBrazilianData(query) {
     return finalResults;
 }
 
-// --- Funções de Renderização (sem links para detalhes) ---
 function renderTeamCard(team) {
     const isFav = isFavorite('teams', { id: team.id });
     const teamDataString = JSON.stringify({ id: team.id, name: team.name, logo: team.logo || 'assets/img/team-placeholder.png', leagues: team.leagues, country: team.country, city: team.city, founded: team.founded, venue: team.venue }).replace(/"/g, '&quot;');
@@ -212,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     window.addEventListener(FAVORITES_CHANGED_EVENT, syncFavoriteButtons);
     window.addEventListener('storage', (e) => { 
-        if (e.key && e.key.startsWith(SEARCH_RESULTS_CACHE_PREFIX)) { // Reage a mudanças no cache de busca também
+        if (e.key && e.key.startsWith(SEARCH_RESULTS_CACHE_PREFIX)) {
             syncFavoriteButtons(); 
         }
     });

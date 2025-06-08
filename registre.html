@@ -85,11 +85,10 @@
             const formTitle = document.querySelector('header h1');
             const submitButton = document.querySelector('#registerForm button[type="submit"]');
             const roleSelect = document.getElementById('role');
-            const passwordInput = document.getElementById('password'); // Senha pessoal
+            const passwordInput = document.getElementById('password'); 
             const adminUniversalPasswordGroup = document.getElementById('adminUniversalPasswordGroup');
-            const adminUniversalPasswordInput = document.getElementById('adminUniversalPassword'); // Senha universal
+            const adminUniversalPasswordInput = document.getElementById('adminUniversalPassword');
 
-            // Função para alternar a visibilidade da senha universal do administrador
             function toggleAdminUniversalPasswordInput() {
                 if (roleSelect.value === 'Administrador') {
                     adminUniversalPasswordGroup.style.display = 'block';
@@ -97,16 +96,14 @@
                 } else {
                     adminUniversalPasswordGroup.style.display = 'none';
                     adminUniversalPasswordInput.removeAttribute('required');
-                    adminUniversalPasswordInput.value = ''; // Limpa o campo ao esconder
+                    adminUniversalPasswordInput.value = '';
                 }
             }
 
-            // Adiciona listener para mudança no select de Papel
             roleSelect.addEventListener('change', toggleAdminUniversalPasswordInput);
 
 
             if (userId) {
-                // Modo de Edição: Requer administrador logado
                 const loggedUser = getLoggedUser();
                 if (!loggedUser || loggedUser.role !== 'Administrador') {
                     showModalMessage('Você não tem permissão para editar usuários.', () => {
@@ -115,7 +112,6 @@
                     return;
                 }
 
-                // Se for administrador e tiver ID, preenche o formulário para edição
                 const user = getUserById(parseInt(userId));
                 if (user) {
                     document.getElementById('userId').value = user.id;
@@ -128,39 +124,30 @@
                     formTitle.textContent = 'Editar Usuário';
                     submitButton.textContent = 'Atualizar';
                     
-                    // Impede admin de mudar seu próprio papel ao editar a si mesmo
                     if (loggedUser.id === parseInt(userId)) {
                         roleSelect.disabled = true;
                     } else {
                         roleSelect.disabled = false;
                     }
 
-                    // No modo de edição, a senha pessoal não é pré-preenchida por segurança
                     passwordInput.placeholder = "Deixe em branco para manter a senha atual";
-                    passwordInput.removeAttribute('required'); // Senha pessoal é opcional na edição
+                    passwordInput.removeAttribute('required');
 
-                    // Garante que o campo de senha universal esteja oculto/visível corretamente
-                    // com base no papel do usuário que está sendo editado
                     toggleAdminUniversalPasswordInput();
 
-                    // Se estiver editando um administrador, a senha universal deve ser preenchida para validação, mas não exibida
-                    // adminUniversalPasswordInput.value = '0000'; // Você pode pré-preencher, mas melhor deixar vazio para o usuário digitar
-                    
                 } else {
                     showModalMessage('Usuário não encontrado para edição.', () => {
                         window.location.href = 'listing.html';
                     });
                 }
             } else {
-                // Modo de Cadastro de Novo Usuário: Acessível a todos
                 formTitle.textContent = 'Cadastrar Novo Usuário';
                 submitButton.textContent = 'Cadastrar';
                 roleSelect.value = 'Usuário Padrão';
                 roleSelect.disabled = false;
                 passwordInput.placeholder = "Digite sua senha pessoal";
-                passwordInput.setAttribute('required', 'true'); // Senha pessoal é obrigatória no cadastro
+                passwordInput.setAttribute('required', 'true');
 
-                // Esconde o campo da senha universal por padrão
                 toggleAdminUniversalPasswordInput();
             }
         });

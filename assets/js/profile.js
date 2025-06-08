@@ -1,13 +1,11 @@
-// assets/js/profile.js
 import { getLoggedUser, updateAuthUser, logout, showModalMessage } from './auth.js';
 import { 
     getFavorites, 
     removeFromFavoritesOnPage, 
     FAVORITES_CHANGED_EVENT,
-    FAVORITES_KEY_FOR_EVENT // Usado para o listener de storage
+    FAVORITES_KEY_FOR_EVENT
 } from './favorites.js';
 
-// Funções para renderizar os cards de favoritos (sem links para detalhes)
 function renderFavoritePlayerCard(player) {
     return `
         <div class="card player-card" data-id="${player.id}" data-type="players">
@@ -66,9 +64,9 @@ function loadUserProfile() {
 
 function loadFavoritesOnProfile() {
     const loggedUser = getLoggedUser();
-    if (!loggedUser) return; // Segurança, embora a página já deva redirecionar
+    if (!loggedUser) return;
 
-    const favorites = getFavorites(); // Pega os favoritos DO USUÁRIO LOGADO
+    const favorites = getFavorites();
     
     const teamsContainer = document.getElementById('favoriteTeams');
     if (teamsContainer) {
@@ -140,8 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.addEventListener(FAVORITES_CHANGED_EVENT, loadFavoritesOnProfile);
     window.addEventListener('storage', (e) => {
-        // O evento de storage é para sincronização entre abas.
-        // A chave 'users' é alterada quando um favorito é salvo.
         if (e.key === 'users') { 
             loadFavoritesOnProfile();
         }

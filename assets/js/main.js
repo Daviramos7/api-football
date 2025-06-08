@@ -1,4 +1,3 @@
-// assets/js/main.js
 import { fetchFromAPI } from './api.js';
 import {
     getFavorites,
@@ -6,7 +5,6 @@ import {
     FAVORITES_CHANGED_EVENT
 } from './favorites.js';
 
-// Constante original com todas as ligas para referência futura
 const BRAZILIAN_LEAGUES = [
     { id: 71, name: 'Brasileirão Série A', season: 2025 },
     { id: 72, name: 'Brasileirão Série B', season: 2025 },
@@ -15,16 +13,14 @@ const BRAZILIAN_LEAGUES = [
     { id: 73, name: 'Copa do Brasil', season: 2025 }
 ];
 
-// DOM elements
 const favoriteTeamsContainer = document.getElementById('favoriteTeams');
 const favoritePlayersContainer = document.getElementById('favoritePlayers');
 const leagueSelect = document.getElementById('leagueSelect');
 const groupSelect = document.getElementById('groupSelect');
 const standingsList = document.getElementById('standingsList');
 
-// --- Renderiza a seção de favoritos resumidos ---
 function renderMainPageFavorites() {
-    const fav = getFavorites(); // Pega os favoritos do usuário logado
+    const fav = getFavorites();
 
     if (favoriteTeamsContainer) {
         let teamsHtml = '<h3>Times Favoritos</h3>';
@@ -57,7 +53,6 @@ function renderMainPageFavorites() {
     }
 }
 
-// --- Carrega a tabela de classificação ---
 async function loadStandings(leagueId, group = 0) {
     if (!standingsList || !leagueId) {
         if (standingsList) standingsList.innerHTML = '<p class="no-results-message">Selecione uma liga para ver a classificação.</p>';
@@ -69,7 +64,6 @@ async function loadStandings(leagueId, group = 0) {
     const leagueConfig = BRAZILIAN_LEAGUES.find(l => l.id === parseInt(leagueId));
     const season = leagueConfig ? leagueConfig.season : new Date().getFullYear();
 
-    // Esta verificação é uma salvaguarda, mas a opção já foi removida do select
     if (parseInt(leagueId) === 73) { 
         standingsList.innerHTML = '<p class="no-results-message">Copa do Brasil tem formato eliminatório, sem tabela de classificação.</p>';
         if (groupSelect) groupSelect.style.display = 'none';
@@ -173,17 +167,14 @@ async function loadStandings(leagueId, group = 0) {
     }
 }
 
-// --- Inicialização ---
 function init() {
     if (leagueSelect) {
-        // Filtra para não incluir a Copa do Brasil (ID 73) no select
         const leaguesForSelect = BRAZILIAN_LEAGUES.filter(league => league.id !== 73);
         
         leagueSelect.innerHTML = leaguesForSelect.map(league =>
             `<option value="${league.id}">${league.name}</option>`
         ).join('');
-        
-        // Adiciona um placeholder inicial
+
         const placeholderOption = "<option value=\"\" disabled selected>Selecione uma liga</option>";
         leagueSelect.insertAdjacentHTML('afterbegin', placeholderOption);
         leagueSelect.value = ""; 
@@ -206,9 +197,6 @@ function init() {
     }
 
     renderMainPageFavorites();
-    
-    // NÃO carrega nenhuma classificação por padrão para economizar API.
-    // Exibe mensagem inicial na área de classificação.
     if (standingsList && (!leagueSelect || !leagueSelect.value)) {
         standingsList.innerHTML = '<p class="no-results-message">Selecione uma liga para ver a classificação.</p>';
     }
@@ -218,7 +206,7 @@ function init() {
 
     window.addEventListener(FAVORITES_CHANGED_EVENT, renderMainPageFavorites);
     window.addEventListener('storage', (e) => {
-        if (e.key === FAVORITES_KEY_FOR_EVENT) { // Usando chave de evento se for diferente
+        if (e.key === FAVORITES_KEY_FOR_EVENT) {
             renderMainPageFavorites();
         }
     });

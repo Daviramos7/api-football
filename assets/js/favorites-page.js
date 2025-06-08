@@ -1,9 +1,6 @@
-// assets/js/favorites-page.js
 import { getFavorites, removeFromFavoritesOnPage, FAVORITES_CHANGED_EVENT } from './favorites.js';
 import { getLoggedUser, showModalMessage } from './auth.js';
 
-// Funções de renderização dos cards (sem links para detalhes)
-// Estas são idênticas às do profile.js para manter a consistência visual.
 function renderFavoritePlayerCard(player) {
     return `
     <div class="card favorite-card player-card" data-id="${player.id}" data-type="players">
@@ -58,7 +55,7 @@ function loadAndDisplayFavoritesOnPage() {
         return;
     }
 
-    const favorites = getFavorites(); // Pega os favoritos do usuário logado
+    const favorites = getFavorites();
 
     if (favorites.teams && favorites.teams.length > 0) {
         teamsContainer.innerHTML = favorites.teams.map(renderFavoriteTeamCard).join('');
@@ -73,14 +70,12 @@ function loadAndDisplayFavoritesOnPage() {
     }
 }
 
-// Expõe a função de remover para ser chamada pelos botões nos cards
 window.handlePageRemoveFavorite = (type, itemId) => {
     if (confirm(`Tem certeza que deseja remover este ${type === 'teams' ? 'time' : 'jogador'} dos favoritos?`)) {
         removeFromFavoritesOnPage(type, itemId, 'favoritesPage');
     }
 };
 
-// --- Inicialização e Event Listeners ---
 document.addEventListener('DOMContentLoaded', () => {
     loadAndDisplayFavoritesOnPage();
 
@@ -91,11 +86,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Ouve por mudanças nos favoritos para manter a página sincronizada
 window.addEventListener(FAVORITES_CHANGED_EVENT, loadAndDisplayFavoritesOnPage);
 window.addEventListener('storage', (e) => {
-    // Como os favoritos agora fazem parte do objeto de usuários,
-    // ouvimos por mudanças na chave 'users'.
     if (e.key === 'users') {
         loadAndDisplayFavoritesOnPage();
     }

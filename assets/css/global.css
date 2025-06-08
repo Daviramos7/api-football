@@ -1,6 +1,3 @@
-/* assets/css/global.css - VERSÃO FINAL COM TODAS AS CORREÇÕES */
-
-/* --- :root Variáveis CSS --- */
 :root {
     --bg: #fafafa;
     --surface: #ffffff;
@@ -16,7 +13,6 @@
     --star-favored-color: #FFD700;
 }
 
-/* --- Base e Resets --- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
@@ -33,19 +29,17 @@ a { color: var(--primary); text-decoration: none; transition: color 0.2s ease; }
 a:hover { color: var(--primary-light); text-decoration: underline; }
 img { max-width: 100%; height: auto; display: block; }
 
-/* --- Layout Principal e Containers --- */
+
 .container {
     width: 90%; max-width: 1200px; margin-left: auto; margin-right: auto;
     padding-left: 1rem; padding-right: 1rem;
 }
 main { flex-grow: 1; padding-top: 1.5rem; padding-bottom: 1.5rem; }
 
-/* CORREÇÃO: Centraliza parágrafos soltos abaixo de formulários */
 main > p {
     text-align: center;
 }
 
-/* --- Cabeçalho e Navegação --- */
 header {
     background: var(--surface); padding: 1.25rem 0;
     box-shadow: 0 2px 8px var(--shadow-medium); margin-bottom: 1.5rem;
@@ -61,7 +55,6 @@ nav a {
 nav a:hover { background: var(--primary-light); color: #fff; text-decoration: none; border-color: var(--primary-light); }
 nav a.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 600; }
 
-/* --- Formulários e Controles --- */
 form {
     max-width: 450px; margin: 2rem auto; padding: 1.5rem;
     background: var(--surface); border-radius: 12px;
@@ -78,7 +71,6 @@ input:focus, textarea:focus, select:focus { outline: none; border-color: var(--p
 input[disabled], select[disabled] { background-color: #e9ecef; color: #6c757d; cursor: not-allowed; }
 textarea { min-height: 80px; resize: vertical; }
 
-/* --- Botões --- */
 button, input[type="submit"], .btn {
     padding: 0.7rem 1.4rem; font-size: 0.95rem; font-weight: 600; color: #fff; background-color: var(--primary);
     border: none; border-radius: 50px; cursor: pointer; text-align: center;
@@ -96,9 +88,7 @@ button:active, input[type="submit"]:active, .btn:active { transform: scale(0.98)
 }
 .logout-button:hover { background-color: #e64a69 !important; }
 
-/* --- Modal de Pop-up --- */
 dialog#popupModal {
-    /* CORREÇÃO: Força a centralização vertical e horizontal */
     position: fixed;
     top: 50%;
     left: 50%;
@@ -112,7 +102,6 @@ dialog#popupModal::backdrop { background: rgba(0, 0, 0, 0.5); }
 dialog#popupModal p#modalMessage { margin-bottom: 1rem; color: var(--text-dark); font-size: 1rem; line-height: 1.4; }
 dialog#popupModal button#closeModal { margin-top: 0.5rem; }
 
-/* --- Estilos Gerais para Cards --- */
 .card, .favorite-card, .team-card, .player-card,
 .match-card, .player-detail-card, .team-detail-card, .standings-card {
     width: 100%; max-width: 320px; margin-left: auto; margin-right: auto; margin-bottom: 1.25rem;
@@ -126,7 +115,6 @@ dialog#popupModal button#closeModal { margin-top: 0.5rem; }
     transform: translateY(-4px); box-shadow: 0 6px 16px var(--shadow-medium);
 }
 
-/* --- Botão de Favoritar (Estrela) --- */
 .favorite-button-container { position: absolute; top: 8px; right: 8px; z-index: 10; }
 .favorite-btn {
     background: rgba(250, 250, 250, 0.5); border: 1px solid rgba(0,0,0,0.08);
@@ -138,11 +126,9 @@ dialog#popupModal button#closeModal { margin-top: 0.5rem; }
 .favorite-btn.favored { color: var(--star-favored-color); border-color: transparent; background: rgba(255, 215, 0, 0.1); }
 .favorite-btn.favored:hover { color: #FFA000; }
 
-/* --- Imagens e Logos Pequenos --- */
 .team-logo-small, .league-logo-small, .stand-team-logo { width: 22px; height: 22px; object-fit: contain; border-radius: 3px; }
 .stand-team-logo { margin-right: 0.4rem; }
 
-/* --- Cards de Favoritos RESUMIDOS (na main.html aside) --- */
 .favorites-section #favoriteTeams .favorite-card,
 .favorites-section #favoritePlayers .favorite-card {
     padding: 0.75rem; gap: 0.4rem; min-width: 120px; max-width: 160px; align-items: center;
@@ -158,7 +144,6 @@ dialog#popupModal button#closeModal { margin-top: 0.5rem; }
     max-width: 100%; margin-top: 0.2rem; text-align: center;
 }
 
-/* --- Cards de Times e Jogadores (Resultados da Busca - search.html) --- */
 .results-grid .team-card .team-header, 
 .results-grid .player-card .player-photo-container { margin-bottom: 0.5rem; }
 .results-grid .team-card .team-logo { width: 80px; height: 80px; object-fit: contain; margin: 0 auto; }
@@ -183,7 +168,6 @@ dialog#popupModal button#closeModal { margin-top: 0.5rem; }
 .results-grid .team-card .team-info p, 
 .results-grid .player-card .player-info p { display: none; }
 
-/* --- Cards de Favoritos (Listas em profile.html e favorites.html) --- */
 .favorites-container .card { padding: 1.25rem; text-align: center; }
 .favorites-container .player-card .player-photo-container {
     width: 100px; height: 100px; border-radius: 50%;
@@ -206,12 +190,10 @@ dialog#popupModal button#closeModal { margin-top: 0.5rem; }
 .favorites-container .team-card .team-info p { font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.3rem; line-height: 1.4; text-align: center; }
 .favorites-container .team-card .remove-btn { margin-top: 1rem; padding: 0.5rem 1rem; font-size: 0.85rem; }
 
-/* --- Cards de Detalhes (Escondidos por padrão pois a funcionalidade foi removida) --- */
 .team-detail-card, .player-detail-card, .match-details-container { 
     display: none; 
 }
 
-/* --- Mensagens de Feedback --- */
 .no-favorites, .searching-message, .no-results-message, 
 .loading-message, .error-message {
     text-align: center; font-size: 1rem; padding: 1.25rem; background: var(--surface);
@@ -224,7 +206,6 @@ dialog#popupModal button#closeModal { margin-top: 0.5rem; }
 .searching-message, .loading-message { animation: pulse 1.5s infinite ease-in-out; border: none; box-shadow: none; background: transparent; color: var(--primary); font-weight: 500; padding: 1.5rem 1rem;}
 @keyframes pulse {0%{opacity:0.6;}50%{opacity:1;}100%{opacity:0.6;}}
 
-/* --- Layout da Página Principal (main.html) --- */
 .main-page-grid { display: flex; flex-direction: column; gap: 1.5rem; }
 .favorites-section, .standings-section { 
     width: 100%; padding: 1.5rem; background: var(--surface);
@@ -246,7 +227,6 @@ dialog#popupModal button#closeModal { margin-top: 0.5rem; }
 }
 .favorites-section .favorite-card { max-width: none; width: 100%; }
 
-/* --- Seção e Tabela de Classificação --- */
 .standings-section .standings-header {
     display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
     margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
@@ -301,7 +281,6 @@ dialog#popupModal button#closeModal { margin-top: 0.5rem; }
 }
 .form-win { background: #27ae60; } .form-draw { background: #f39c12; } .form-loss { background: #c0392b; }
 
-/* --- Outras Seções (Busca, Listagem de Usuários) --- */
 #filter-section { flex-direction: column; align-items: stretch; padding: 0.75rem; }
 #filter-section input.search-input { font-size: 0.95rem; }
 #filter-section button { width: 100%; }
@@ -313,14 +292,12 @@ dialog#popupModal button#closeModal { margin-top: 0.5rem; }
 #data-table th, #data-table td { padding: 0.6rem 0.8rem; font-size: 0.9rem; }
 #data-table td.actions .btn { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
 
-/* --- Rodapé --- */
 footer {
     padding: 1rem; text-align: center; color: var(--text-light);
     margin-top: auto; background-color: var(--surface);
     border-top: 1px solid var(--border); font-size: 0.85rem;
 }
 
-/* === Breakpoint Principal para Telas Maiores (Desktop) === */
 @media (min-width: 768px) {
     h1 { font-size: 2.2rem; } h2 { font-size: 1.75rem; } h3 { font-size: 1.25rem; }
     nav ul { flex-wrap: nowrap; }
