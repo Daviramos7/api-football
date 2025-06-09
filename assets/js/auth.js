@@ -167,7 +167,7 @@ export function getLoggedUser() {
 export function logout() {
     localStorage.removeItem(SESSION_KEY);
     showModalMessage('Você foi desconectado.', () => {
-         window.location.href = 'login.html';
+         window.location.href = 'index.html';
     });
 }
 

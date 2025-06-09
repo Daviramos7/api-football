@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!loggedUser) {
         showModalMessage('Você precisa estar logado para acessar esta página.', () => {
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
         });
         return;
     }

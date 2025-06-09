@@ -50,7 +50,7 @@ function loadAndDisplayFavoritesOnPage() {
     }
 
     if (!loggedUser) {
-        teamsContainer.innerHTML = '<p class="no-favorites">Você precisa estar <a href="login.html">logado</a> para ver seus favoritos.</p>';
+        teamsContainer.innerHTML = '<p class="no-favorites">Você precisa estar <a href="index.html">logado</a> para ver seus favoritos.</p>';
         playersContainer.innerHTML = ''; 
         return;
     }

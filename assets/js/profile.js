@@ -11,7 +11,7 @@ function loadUserProfile() {
         document.getElementById('profileRole').value = loggedUser.role || 'Usuário Padrão';
     } else {
         showModalMessage('Você precisa estar logado para acessar esta página.', () => {
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
         });
     }
 }
