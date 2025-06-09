@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro - Football Manager</title>
+    <title>Cadastro</title>
     <link rel="stylesheet" href="assets/css/global.css">
 </head>
 <body>
@@ -87,7 +87,7 @@
             const roleSelect = document.getElementById('role');
             const passwordInput = document.getElementById('password'); 
             const adminUniversalPasswordGroup = document.getElementById('adminUniversalPasswordGroup');
-            const adminUniversalPasswordInput = document.getElementById('adminUniversalPassword');
+            const adminUniversalPasswordInput = document.getElementById('adminUniversalPassword'); 
 
             function toggleAdminUniversalPasswordInput() {
                 if (roleSelect.value === 'Administrador') {
@@ -96,7 +96,7 @@
                 } else {
                     adminUniversalPasswordGroup.style.display = 'none';
                     adminUniversalPasswordInput.removeAttribute('required');
-                    adminUniversalPasswordInput.value = '';
+                    adminUniversalPasswordInput.value = ''; 
                 }
             }
 
@@ -131,10 +131,9 @@
                     }
 
                     passwordInput.placeholder = "Deixe em branco para manter a senha atual";
-                    passwordInput.removeAttribute('required');
-
+                    passwordInput.removeAttribute('required'); 
                     toggleAdminUniversalPasswordInput();
-
+                    
                 } else {
                     showModalMessage('Usuário não encontrado para edição.', () => {
                         window.location.href = 'listing.html';
@@ -146,8 +145,7 @@
                 roleSelect.value = 'Usuário Padrão';
                 roleSelect.disabled = false;
                 passwordInput.placeholder = "Digite sua senha pessoal";
-                passwordInput.setAttribute('required', 'true');
-
+                passwordInput.setAttribute('required', 'true'); 
                 toggleAdminUniversalPasswordInput();
             }
         });

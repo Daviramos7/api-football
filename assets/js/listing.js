@@ -1,11 +1,10 @@
-import { getAllUsers, deleteUser, getLoggedUser, showModalMessage } from './auth.js'; // Importa funções de auth.js
-
+import { getAllUsers, deleteUser, getLoggedUser, showModalMessage } from './auth.js';
 const dataTableBody = document.getElementById('data-table-body');
 const searchInput = document.getElementById('search-input');
 const noResultsMessage = document.getElementById('no-results');
 const addNewBtn = document.getElementById('add-new-btn');
-const tableHeaderActions = document.querySelector('#data-table thead th:last-child'); // Coluna "Ações"
-const allActionButtons = document.querySelectorAll('.actions'); // Todas as células de "Ações"
+const tableHeaderActions = document.querySelector('#data-table thead th:last-child');
+const allActionButtons = document.querySelectorAll('.actions');
 
 function renderTableRow(user) {
     const loggedUser = getLoggedUser();
@@ -53,11 +52,11 @@ function filterAndSearchUsers() {
 }
 
 window.handleEditUser = (id) => {
-    window.location.href = `registre.html?id=${id}`;
+    window.location.href = `registre.html?id=${id}`; 
 };
 
 window.handleDeleteUser = (id) => {
-    const loggedUser = getLoggedUser();
+ const loggedUser = getLoggedUser();
     if (!loggedUser || loggedUser.role !== 'Administrador') {
         showModalMessage('Você não tem permissão para excluir usuários.');
         return;
@@ -69,14 +68,14 @@ window.handleDeleteUser = (id) => {
     }
 
     if (confirm('Tem certeza que deseja excluir este usuário?')) {
-        deleteUser(id);
-        filterAndSearchUsers();
+        deleteUser(id); 
+        filterAndSearchUsers(); 
         alert('Usuário excluído com sucesso!');
     }
 };
 
 addNewBtn.addEventListener('click', () => {
-    window.location.href = 'registre.html';
+    window.location.href = 'registre.html'; 
 });
 
 searchInput.addEventListener('input', filterAndSearchUsers);
@@ -95,20 +94,8 @@ document.addEventListener('DOMContentLoaded', () => {
         showModalMessage('Você não tem permissão para acessar a listagem de usuários.', () => {
             window.location.href = 'main.html'; 
         });
-        addNewBtn.style.display = 'none';
-        searchInput.style.display = 'none';
-        document.getElementById('filter-section').style.display = 'none';
-        if (tableHeaderActions) {
-            tableHeaderActions.style.display = 'none';
-        }
-        document.querySelectorAll('.actions').forEach(td => {
-            td.style.display = 'none';
-        });
-
-        dataTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Apenas administradores podem visualizar esta lista.</td></tr>';
-        noResultsMessage.style.display = 'none';
         
-        return;
+        return; 
     }
 
     filterAndSearchUsers();
